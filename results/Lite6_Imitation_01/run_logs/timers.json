@@ -1,0 +1,79 @@
+{
+    "name": "root",
+    "metadata": {
+        "timer_format_version": "0.1.0",
+        "start_time_seconds": "1692850137",
+        "python_version": "3.7.16 (default, Jan 17 2023, 16:06:28) [MSC v.1916 64 bit (AMD64)]",
+        "command_line_arguments": "C:\\Users\\dhh3hb\\Anaconda3\\envs\\ml-agents-108\\Scripts\\mlagents-learn config/RobotReacher.yaml --run-id=Lite6_Imitation_01",
+        "mlagents_version": "0.17.0",
+        "mlagents_envs_version": "0.17.0",
+        "communication_protocol_version": "1.0.0",
+        "tensorflow_version": "2.11.0",
+        "end_time_seconds": "1692850175"
+    },
+    "total": 37.8062673,
+    "count": 1,
+    "self": 0.29453180000000145,
+    "children": {
+        "run_training.setup": {
+            "total": 0.014259199999999694,
+            "count": 1,
+            "self": 0.014259199999999694
+        },
+        "TrainerController.start_learning": {
+            "total": 37.4974763,
+            "count": 1,
+            "self": 0.6592547000000053,
+            "children": {
+                "TrainerController._reset_env": {
+                    "total": 36.505880499999996,
+                    "count": 1,
+                    "self": 36.505880499999996
+                },
+                "demo_to_buffer": {
+                    "total": 0.3321127999999973,
+                    "count": 1,
+                    "self": 6.950000000216505e-05,
+                    "children": {
+                        "load_demonstration": {
+                            "total": 0.0052583999999953335,
+                            "count": 1,
+                            "self": 0.0051478999999972075,
+                            "children": {
+                                "read_file": {
+                                    "total": 0.00011049999999812599,
+                                    "count": 1,
+                                    "self": 0.00011049999999812599
+                                }
+                            }
+                        },
+                        "make_demo_buffer": {
+                            "total": 0.3267848999999998,
+                            "count": 1,
+                            "self": 0.09392590000003054,
+                            "children": {
+                                "steps_from_proto": {
+                                    "total": 0.23285899999996928,
+                                    "count": 3320,
+                                    "self": 0.1355063000001877,
+                                    "children": {
+                                        "_process_vector_observation": {
+                                            "total": 0.09735269999978158,
+                                            "count": 6640,
+                                            "self": 0.09735269999978158
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "TrainerController._save_model": {
+                    "total": 0.00022830000000340078,
+                    "count": 1,
+                    "self": 0.00022830000000340078
+                }
+            }
+        }
+    }
+}

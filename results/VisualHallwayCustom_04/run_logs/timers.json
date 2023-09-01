@@ -1,0 +1,41 @@
+{
+    "name": "root",
+    "metadata": {
+        "timer_format_version": "0.1.0",
+        "start_time_seconds": "1693263280",
+        "python_version": "3.7.16 (default, Jan 17 2023, 16:06:28) [MSC v.1916 64 bit (AMD64)]",
+        "command_line_arguments": "C:\\Users\\dhh3hb\\Anaconda3\\envs\\ml-agents-108\\Scripts\\mlagents-learn config/VisualHallwayCustom.yaml --run-id=VisualHallwayCustom_04",
+        "mlagents_version": "0.17.0",
+        "mlagents_envs_version": "0.17.0",
+        "communication_protocol_version": "1.0.0",
+        "tensorflow_version": "2.11.0",
+        "end_time_seconds": "1693263344"
+    },
+    "total": 63.0779932,
+    "count": 1,
+    "self": 0.27612139999999386,
+    "children": {
+        "run_training.setup": {
+            "total": 0.011484000000000272,
+            "count": 1,
+            "self": 0.011484000000000272
+        },
+        "TrainerController.start_learning": {
+            "total": 62.790387800000005,
+            "count": 1,
+            "self": 0.00015559999999936736,
+            "children": {
+                "TrainerController._reset_env": {
+                    "total": 62.78995930000001,
+                    "count": 1,
+                    "self": 62.78995930000001
+                },
+                "TrainerController._save_model": {
+                    "total": 0.0002728999999987991,
+                    "count": 1,
+                    "self": 0.0002728999999987991
+                }
+            }
+        }
+    }
+}

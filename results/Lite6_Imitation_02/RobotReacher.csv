@@ -1,0 +1,2 @@
+Steps,Policy/Extrinsic Value Estimate,Policy/GAIL Value Estimate,Policy/Entropy,Losses/Value Loss,Losses/Policy Loss,Policy/Learning Rate,Policy/Epsilon,Policy/Beta,Losses/GAIL Loss,Policy/GAIL Policy Estimate,Policy/GAIL Expert Estimate,Losses/Pretraining Loss,Environment/Episode Length,Environment/Cumulative Reward,Policy/Extrinsic Reward,Policy/GAIL Reward,Is Training
+20000,-23.82628,-14.567073,1.416098,8.298035,0.052600767,0.00029827203,0.19942401,0.0049712583,6.6034036,0.091664925,0.8438153,1453.9036,799.0,0.0,0.0,24.273299992084503,1.0

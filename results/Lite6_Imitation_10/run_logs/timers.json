@@ -1,0 +1,46 @@
+{
+    "name": "root",
+    "metadata": {
+        "timer_format_version": "0.1.0",
+        "start_time_seconds": "1692907614",
+        "python_version": "3.7.16 (default, Jan 17 2023, 16:06:28) [MSC v.1916 64 bit (AMD64)]",
+        "command_line_arguments": "C:\\Users\\dhh3hb\\Anaconda3\\envs\\ml-agents-108\\Scripts\\mlagents-learn config/RobotReacher.yaml --run-id=Lite6_Imitation_10",
+        "mlagents_version": "0.17.0",
+        "mlagents_envs_version": "0.17.0",
+        "communication_protocol_version": "1.0.0",
+        "tensorflow_version": "2.11.0",
+        "end_time_seconds": "1692907665"
+    },
+    "total": 50.2099734,
+    "count": 1,
+    "self": 0.28353150000000227,
+    "children": {
+        "run_training.setup": {
+            "total": 0.011455799999999794,
+            "count": 1,
+            "self": 0.011455799999999794
+        },
+        "TrainerController.start_learning": {
+            "total": 49.9149861,
+            "count": 1,
+            "self": 0.00047039999999753945,
+            "children": {
+                "TrainerController._reset_env": {
+                    "total": 49.9142472,
+                    "count": 1,
+                    "self": 49.9142472
+                },
+                "trainer_threads": {
+                    "total": 1.4000000021496817e-06,
+                    "count": 1,
+                    "self": 1.4000000021496817e-06
+                },
+                "TrainerController._save_model": {
+                    "total": 0.000267100000002074,
+                    "count": 1,
+                    "self": 0.000267100000002074
+                }
+            }
+        }
+    }
+}
