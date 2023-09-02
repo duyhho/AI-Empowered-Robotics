@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine.AI;
+using Unity.MLAgents;
 
 // public class Room
 // {
@@ -87,6 +88,23 @@ using UnityEngine.AI;
 
 // }
 
+public class Corridor
+{
+    public int StartX { get; set; }
+    public int StartY { get; set; }
+    public int EndX { get; set; }
+    public int EndY { get; set; }
+    public int Width { get; set; }
+    public int Length { get; set; }
+
+    public void CalculateLength()
+    {
+        if (StartX == EndX)
+            Length = Mathf.Abs(EndY - StartY);
+        else
+            Length = Mathf.Abs(EndX - StartX);
+    }
+}
 
 public class ModernRoomGenerator : MonoBehaviour
 {
@@ -114,6 +132,10 @@ public class ModernRoomGenerator : MonoBehaviour
 
     [Tooltip("Maximum gap between rooms. Also affects corridor lengths ")]
     public int roomMargin = 3;
+
+    [Tooltip("Width of Corridor.")]
+    public int corridorWidth = 2; // Change to desired width
+
     [Tooltip("If Checked: makes dungeon reset on every time level loads.")]
     public bool generate_on_load = true;
     public int minRoomSize = 5;
@@ -127,6 +149,11 @@ public class ModernRoomGenerator : MonoBehaviour
 
     //public NavMeshSurface surface;
 
+    public float parentOffsetHeight = 2f;
+    GameObject exitGameObject;
+    public DungeonAgentFire agent;
+    RoomManager roomManager;
+
     class Dungeon
     {
         public static int map_size;
@@ -137,7 +164,7 @@ public class ModernRoomGenerator : MonoBehaviour
         public static List<MapTile> map;
 
         public static List<Room> rooms = new List<Room>();
-
+        public static List<Corridor> corridors = new List<Corridor>();
         public static Room goalRoom;
         public static Room startRoom;
 
@@ -148,6 +175,7 @@ public class ModernRoomGenerator : MonoBehaviour
         public int minimumRoomMargin;
         public int roomMargin;
         public int roomMarginTemp;
+        public int corridorWidth;
 
         //tile types for ease
         public static List<int> roomsandfloors = new List<int> { 1, 3 };
@@ -155,7 +183,7 @@ public class ModernRoomGenerator : MonoBehaviour
         public static List<int> walls = new List<int> { 8, 9, 10, 11 };
         public static List<int> corridor_walls = new List<int> { 108, 109, 1010, 1011 };
         private static List<string> directions = new List<string> { "x", "y", "-y", "-x" }; //,"-y"};
-
+        public static Vector3 startPoint;
         public MapTile createTile(int type, int x, int y, Room room = null)
         {
             MapTile newRoomTile = new MapTile();
@@ -171,13 +199,17 @@ public class ModernRoomGenerator : MonoBehaviour
             return newRoomTile;
         }
 
+
         public void Generate()
         {
+            int roomWidth = this.corridorWidth;
             int room_count = this.maximumRoomCount;
             int min_size = this.min_size;
             int max_size = this.max_size;
             map = new List<MapTile>();
             rooms = new List<Room>();
+            corridors = new List<Corridor>();
+
 
             int collision_count = 0;
             string direction = "set";
@@ -267,7 +299,9 @@ public class ModernRoomGenerator : MonoBehaviour
                         room.y = lastRoom.y - room.h - this.roomMarginTemp - this.minimumRoomMargin - 2;
                         room.x = lastRoom.x;
                     }
-                    room.room_height = roomMarginTemp;
+                    // room.room_height = roomMarginTemp;
+                    room.room_height = 3;
+
 
 
 
@@ -302,7 +336,6 @@ public class ModernRoomGenerator : MonoBehaviour
                     oldDirection = direction;
                     direction = "set";
                 }
-
             }
 
             //room making
@@ -357,6 +390,7 @@ public class ModernRoomGenerator : MonoBehaviour
                 {
                     map.Add(createTile(8, room.x + j, room.y + room.h, room));
                 }
+
             }
 
 
@@ -367,6 +401,7 @@ public class ModernRoomGenerator : MonoBehaviour
 
 
             //corridor making
+            // List<Corridor> corridors = new List<Corridor>();
             for (int i = 0; i < rooms.Count; i++)
             {
                 Room roomA = rooms[i];
@@ -415,6 +450,20 @@ public class ModernRoomGenerator : MonoBehaviour
                     }
 
                     MapTile currentTile = null;
+                    // At the start of your corridor generation
+                    // Capture the initial position of pointB as the end of the corridor
+                    int initialPointBX = pointB.x;
+                    int initialPointBY = pointB.y;
+                    Corridor corridor = new Corridor
+                    {
+                        StartX = pointA.x,
+                        StartY = pointA.y,
+                        Width = corridorWidth,
+                        EndX = initialPointBX,
+                        EndY = initialPointBY
+                    };
+                    corridor.CalculateLength();
+                    corridors.Add(corridor);
                     while ((pointB.x != pointA.x) || (pointB.y != pointA.y))
                     {
                         if (pointB.x != pointA.x)
@@ -469,27 +518,49 @@ public class ModernRoomGenerator : MonoBehaviour
 
 
 
-                        MapTile newCorridorTile = new MapTile();
-                        newCorridorTile.type = 3;
-                        //newCorridorTile.room = room;
-                        newCorridorTile.x = pointB.x;
-                        newCorridorTile.y = pointB.y;
-                        if (isWall)
+                        for (int w = 0; w < corridorWidth; w++)
                         {
-                            nextTileBlocksDoor = true; //noting this because we want some items to spawn and block corridor entrances.			
-                            newCorridorTile.isDoor = true; //this tile could be a door?
-                            newCorridorTile.doorDirection = doorDirection;
+                            MapTile newCorridorTile = new MapTile();
+                            newCorridorTile.type = 3;
+
+                            int corridorTileX, corridorTileY;
+
+                            if (horizontalCorridor)
+                            {
+                                corridorTileX = pointB.x;
+                                corridorTileY = pointB.y + w;
+                                Debug.Log("Point B + W:" + (pointB.y + w));
+                            }
+                            else
+                            {
+                                corridorTileX = pointB.x + w;
+                                corridorTileY = pointB.y;
+                            }
+                            // Remove wall tile if it exists at this position
+                            map.RemoveAll(item => (corridorTileX == item.x && corridorTileY == item.y && Dungeon.walls.Contains(item.type)));
+
+                            newCorridorTile.x = corridorTileX;
+                            newCorridorTile.y = corridorTileY;
+
+                            if (isWall)
+                            {
+                                nextTileBlocksDoor = true;
+                                newCorridorTile.isDoor = true;
+                                newCorridorTile.doorDirection = doorDirection;
+                            }
+                            map.Add(newCorridorTile);
                         }
-                        map.Add(newCorridorTile);
+
 
 
                         //Corridor wall locations
+
                         if (horizontalCorridor)
                         {
-                            currentTile = map.Find(item => (pointB.x == item.x && pointB.y + 1 == item.y && Dungeon.walls.Contains(item.type)));
+                            currentTile = map.Find(item => (pointB.x == item.x && pointB.y + corridorWidth == item.y && Dungeon.walls.Contains(item.type)));
                             if (currentTile == null)
                             {
-                                map.Add(createTile(108, pointB.x, pointB.y + 1));
+                                map.Add(createTile(108, pointB.x, pointB.y + corridorWidth));
                             }
 
                             currentTile = map.Find(item => (pointB.x == item.x && pointB.y - 1 == item.y && Dungeon.walls.Contains(item.type)));
@@ -500,10 +571,10 @@ public class ModernRoomGenerator : MonoBehaviour
                         }
                         else
                         {
-                            currentTile = map.Find(item => (pointB.x + 1 == item.x && pointB.y == item.y && Dungeon.walls.Contains(item.type)));
+                            currentTile = map.Find(item => (pointB.x + corridorWidth == item.x && pointB.y == item.y && Dungeon.walls.Contains(item.type)));
                             if (currentTile == null)
                             {
-                                map.Add(createTile(109, pointB.x + 1, pointB.y));
+                                map.Add(createTile(109, pointB.x + corridorWidth, pointB.y));
                             }
                             currentTile = map.Find(item => (pointB.x - 1 == item.x && pointB.y == item.y && Dungeon.walls.Contains(item.type)));
                             if (currentTile == null)
@@ -578,6 +649,8 @@ public class ModernRoomGenerator : MonoBehaviour
 
     public void Generate()
     {
+
+        roomManager = GetComponent<RoomManager>();
         Dungeon dungeon = new Dungeon();
 
         dungeon.min_size = minRoomSize;
@@ -585,8 +658,16 @@ public class ModernRoomGenerator : MonoBehaviour
         dungeon.maximumRoomCount = maximumRoomCount;
         dungeon.roomMargin = roomMargin;
         dungeon.minimumRoomMargin = minimumRoomMargin;
+        dungeon.corridorWidth = corridorWidth;
+
 
         dungeon.Generate(); //Calculates all static object locations (walls, corridors, doors, corners etc.)
+        roomManager.allRooms = Dungeon.rooms;
+        roomManager.parentOffsetHeight = parentOffsetHeight;
+        roomManager.allCorridors = Dungeon.corridors;
+
+        roomManager.GenerateCollidersForAllRooms(tileScaling);
+        roomManager.GenerateCollidersForAllCorridors(tileScaling);
 
         //after this line, modernroomcreator will instantiate objects in their calculated locations.		
         foreach (MapTile mapTile in Dungeon.map)
@@ -604,7 +685,7 @@ public class ModernRoomGenerator : MonoBehaviour
             }
             else
             {
-                tile_location = new Vector3(mapTile.x * tileScaling, 0, mapTile.y * tileScaling);
+                tile_location = new Vector3(mapTile.x * tileScaling, 0, mapTile.y * tileScaling) + new Vector3(0f, parentOffsetHeight, 0f);
             }
 
             created_tile = null;
@@ -623,7 +704,6 @@ public class ModernRoomGenerator : MonoBehaviour
                         }
                     }
                 }
-
                 created_tile = GameObject.Instantiate(floorPrefabToUse, tile_location, Quaternion.identity) as GameObject;
             }
 
@@ -756,15 +836,16 @@ public class ModernRoomGenerator : MonoBehaviour
         }
         else
         {
-            end_point = GameObject.Instantiate(exitPrefab, new Vector3((Dungeon.goalRoom.x + Mathf.FloorToInt(Dungeon.goalRoom.w / 2)) * tileScaling, 0, (Dungeon.goalRoom.y + Mathf.FloorToInt(Dungeon.goalRoom.h / 2)) * tileScaling), Quaternion.identity) as GameObject;
-            start_point = GameObject.Instantiate(startPrefab, new Vector3((Dungeon.startRoom.x + Mathf.FloorToInt(Dungeon.startRoom.w / 2)) * tileScaling, 0, (Dungeon.startRoom.y + Mathf.FloorToInt(Dungeon.startRoom.h / 2)) * tileScaling), Quaternion.identity) as GameObject;
+            end_point = GameObject.Instantiate(exitPrefab, new Vector3((Dungeon.goalRoom.x + Mathf.FloorToInt(Dungeon.goalRoom.w / 2)) * tileScaling, 0.5f + parentOffsetHeight, (Dungeon.goalRoom.y + Mathf.FloorToInt(Dungeon.goalRoom.h / 2)) * tileScaling), Quaternion.identity) as GameObject;
+            start_point = GameObject.Instantiate(startPrefab, new Vector3((Dungeon.startRoom.x + Mathf.FloorToInt(Dungeon.startRoom.w / 2)) * tileScaling, 0.5f + parentOffsetHeight, (Dungeon.startRoom.y + Mathf.FloorToInt(Dungeon.startRoom.h / 2)) * tileScaling), Quaternion.identity) as GameObject;
         }
 
 
         end_point.transform.parent = transform;
         start_point.transform.parent = transform;
-
-
+        exitGameObject = end_point;
+        // agent = start_point.GetComponent<DungeonAgentFire>();
+        agent.symbolOGoal = end_point;
         //Spawn Objects;
         List<SpawnList> spawnedObjectLocations = new List<SpawnList>();
 
@@ -961,66 +1042,63 @@ public class ModernRoomGenerator : MonoBehaviour
         }
 
         //DOORS
-        if (doorPrefab)
-        {
-            for (int i = 0; i < spawnedObjectLocations.Count; i++)
-            {
-                if (spawnedObjectLocations[i].asDoor > 0)
-                {
-                    GameObject newObject;
-                    SpawnList spawnLocation = spawnedObjectLocations[i];
+        // if (doorPrefab)
+        // {
+        //     for (int i = 0; i < spawnedObjectLocations.Count; i++)
+        //     {
+        //         if (spawnedObjectLocations[i].asDoor > 0)
+        //         {
+        //             GameObject newObject;
+        //             SpawnList spawnLocation = spawnedObjectLocations[i];
 
-                    GameObject doorPrefabToUse = doorPrefab;
-                    Room room = spawnLocation.room;
-                    if (room != null)
-                    {
-                        foreach (CustomRoom customroom in customRooms)
-                        {
-                            if (customroom.roomId == room.room_id)
-                            {
-                                doorPrefabToUse = customroom.doorPrefab;
-                                break;
-                            }
-                        }
-                    }
+        //             GameObject doorPrefabToUse = doorPrefab;
+        //             Room room = spawnLocation.room;
+        //             if (room != null)
+        //             {
+        //                 foreach (CustomRoom customroom in customRooms)
+        //                 {
+        //                     if (customroom.roomId == room.room_id)
+        //                     {
+        //                         doorPrefabToUse = customroom.doorPrefab;
+        //                         break;
+        //                     }
+        //                 }
+        //             }
 
-                    if (!makeIt3d)
-                    {
-                        newObject = GameObject.Instantiate(doorPrefabToUse, new Vector3(spawnLocation.x * tileScaling, spawnLocation.y * tileScaling, 0), Quaternion.identity) as GameObject;
-                    }
-                    else
-                    {
-                        newObject = GameObject.Instantiate(doorPrefabToUse, new Vector3(spawnLocation.x * tileScaling, 0, spawnLocation.y * tileScaling), Quaternion.identity) as GameObject;
-                    }
+        //             if (!makeIt3d)
+        //             {
+        //                 newObject = GameObject.Instantiate(doorPrefabToUse, new Vector3(spawnLocation.x * tileScaling, spawnLocation.y * tileScaling, 0), Quaternion.identity) as GameObject;
+        //             }
+        //             else
+        //             {
+        //                 newObject = GameObject.Instantiate(doorPrefabToUse, new Vector3(spawnLocation.x * tileScaling, 0, spawnLocation.y * tileScaling), Quaternion.identity) as GameObject;
+        //             }
 
-                    if (!makeIt3d)
-                    {
-                        newObject.transform.Rotate(Vector3.forward * (-90 * (spawnedObjectLocations[i].asDoor - 1)));
-                    }
-                    else
-                    {
-                        newObject.transform.Rotate(Vector3.up * (-90 * (spawnedObjectLocations[i].asDoor - 1)));
-                    }
+        //             if (!makeIt3d)
+        //             {
+        //                 newObject.transform.Rotate(Vector3.forward * (-90 * (spawnedObjectLocations[i].asDoor - 1)));
+        //             }
+        //             else
+        //             {
+        //                 newObject.transform.Rotate(Vector3.up * (-90 * (spawnedObjectLocations[i].asDoor - 1)));
+        //             }
 
-                    newObject.transform.parent = transform;
-                    spawnedObjectLocations[i].spawnedObject = newObject;
+        //             newObject.transform.parent = transform;
+        //             spawnedObjectLocations[i].spawnedObject = newObject;
 
-                }
-            }
-        }
+        //         }
+        //     }
+        // }
 
     }
-
-
-
     // Use this for initialization
     void Start()
     {
+
         if (generate_on_load)
         {
             ClearOldDungeon();
             Generate();
-
         }
     }
 }

@@ -8,7 +8,7 @@ public class DungeonizerCreator : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        StartCoroutine(dungeonTimer());
+        // StartCoroutine(dungeonTimer());
     }
 
     // Update is called once per frame
@@ -16,12 +16,13 @@ public class DungeonizerCreator : MonoBehaviour
     {
     }
 
-    public IEnumerator dungeonTimer(){
+    public IEnumerator dungeonTimer()
+    {
         // This means you can create a new dungeon whenever you want.
         Dungeonizer d = dungeonizer.GetComponent("Dungeonizer") as Dungeonizer;
-        
+
         d.ClearOldDungeon();
-        d.Generate();   
+        d.Generate();
 
         yield return new WaitForSeconds(0.3f);
         StartCoroutine(dungeonTimer());
