@@ -529,7 +529,7 @@ public class ModernRoomGenerator : MonoBehaviour
                             {
                                 corridorTileX = pointB.x;
                                 corridorTileY = pointB.y + w;
-                                Debug.Log("Point B + W:" + (pointB.y + w));
+                                // Debug.Log("Point B + W:" + (pointB.y + w));
                             }
                             else
                             {
@@ -665,7 +665,7 @@ public class ModernRoomGenerator : MonoBehaviour
         roomManager.allRooms = Dungeon.rooms;
         roomManager.parentOffsetHeight = parentOffsetHeight;
         roomManager.allCorridors = Dungeon.corridors;
-
+        roomManager.tileScaling = tileScaling;
         roomManager.GenerateCollidersForAllRooms(tileScaling);
         roomManager.GenerateCollidersForAllCorridors(tileScaling);
 
@@ -836,15 +836,21 @@ public class ModernRoomGenerator : MonoBehaviour
         }
         else
         {
-            end_point = GameObject.Instantiate(exitPrefab, new Vector3((Dungeon.goalRoom.x + Mathf.FloorToInt(Dungeon.goalRoom.w / 2)) * tileScaling, 0.5f + parentOffsetHeight, (Dungeon.goalRoom.y + Mathf.FloorToInt(Dungeon.goalRoom.h / 2)) * tileScaling), Quaternion.identity) as GameObject;
-            start_point = GameObject.Instantiate(startPrefab, new Vector3((Dungeon.startRoom.x + Mathf.FloorToInt(Dungeon.startRoom.w / 2)) * tileScaling, 0.5f + parentOffsetHeight, (Dungeon.startRoom.y + Mathf.FloorToInt(Dungeon.startRoom.h / 2)) * tileScaling), Quaternion.identity) as GameObject;
+            Vector3 endPointPosition = new Vector3((Dungeon.goalRoom.x + Mathf.FloorToInt(Dungeon.goalRoom.w / 2)) * tileScaling, 0.5f + parentOffsetHeight, (Dungeon.goalRoom.y + Mathf.FloorToInt(Dungeon.goalRoom.h / 2)) * tileScaling);
+            Vector3 startPointPosition = new Vector3((Dungeon.startRoom.x + Mathf.FloorToInt(Dungeon.startRoom.w / 2)) * tileScaling, 0.5f + parentOffsetHeight, (Dungeon.startRoom.y + Mathf.FloorToInt(Dungeon.startRoom.h / 2)) * tileScaling);
+            end_point = GameObject.Instantiate(exitPrefab, endPointPosition, Quaternion.identity) as GameObject;
+            start_point = GameObject.Instantiate(startPrefab, startPointPosition, Quaternion.identity) as GameObject;
+            roomManager.startPoint = startPointPosition;
+            roomManager.endPoint = endPointPosition;
+            agent.transform.position = startPointPosition + new Vector3(0f, 0.5f, 0f);
+
         }
 
 
         end_point.transform.parent = transform;
         start_point.transform.parent = transform;
         exitGameObject = end_point;
-        // agent = start_point.GetComponent<DungeonAgentFire>();
+
         agent.symbolOGoal = end_point;
         //Spawn Objects;
         List<SpawnList> spawnedObjectLocations = new List<SpawnList>();

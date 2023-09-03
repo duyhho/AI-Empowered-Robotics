@@ -13,6 +13,7 @@ public class RoomManager : MonoBehaviour
     // Prefabs and other properties can be added here.
     public GameObject roomColliderPrefab;
     public float parentOffsetHeight = 0f;
+    public float tileScaling = 1f;
     // This method will generate a collider for a specific room.
     public void GenerateColliderForRoom(Room room)
     {
@@ -32,8 +33,8 @@ public class RoomManager : MonoBehaviour
     }
     public void GenerateCollidersForAllRooms(float tileScaling = 1f)
     {
-        Debug.Log("Generating for all rooms..." + allRooms.Count);
-        PrintAllRoomInfo();
+        // Debug.Log("Generating for all rooms..." + allRooms.Count);
+        // PrintAllRoomInfo();
         if (roomColliderPrefab == null) return;
 
         foreach (Room room in allRooms)
@@ -95,8 +96,8 @@ public class RoomManager : MonoBehaviour
         if (corridor.StartY == corridor.EndY)
         {
 
-            Debug.Log($"Start X: {corridor.StartX}, Start Y: {corridor.StartY}, End X: {corridor.EndX}, End Y: {corridor.EndY}, Width: {corridor.Width}, Length: {corridor.Length}");
-            Debug.Log("Y Spawn: " + (corridor.StartY + corridor.Width / 2f) * tileScaling);
+            // Debug.Log($"Start X: {corridor.StartX}, Start Y: {corridor.StartY}, End X: {corridor.EndX}, End Y: {corridor.EndY}, Width: {corridor.Width}, Length: {corridor.Length}");
+            // Debug.Log("Y Spawn: " + (corridor.StartY + corridor.Width / 2f) * tileScaling);
             corridorCenter = new Vector3((corridor.StartX + corridor.EndX) / 2f * tileScaling, parentOffsetHeight, (corridor.StartY + corridor.Width / 2f + centerOffset) * tileScaling);
 
             corridorSize = new Vector3(Mathf.Abs(corridor.EndX - corridor.StartX) * tileScaling, 1, corridor.Width * tileScaling);
@@ -140,4 +141,24 @@ public class RoomManager : MonoBehaviour
     {
         return endPoint;
     }
+
+    public Vector3 GetRandomGoalPosition()
+    {
+        // Debug.Log("AllRooms Length: " + allRooms.Count);
+
+        if (allRooms.Count >= 1)
+        {
+            Room goalRoom = allRooms[allRooms.Count - 1];
+            Room startRoom = allRooms[0]; // Note: You currently aren't using startRoom.
+
+            // Generate a random offset within the room's boundaries.
+            float xOffset = UnityEngine.Random.Range(0, goalRoom.w);
+            float zOffset = UnityEngine.Random.Range(0, goalRoom.h);
+
+            Vector3 endPointPosition = new Vector3((goalRoom.x + xOffset) * tileScaling, 0.5f + parentOffsetHeight, (goalRoom.y + zOffset) * tileScaling);
+            return endPointPosition;
+        }
+        return endPoint;
+    }
+
 }

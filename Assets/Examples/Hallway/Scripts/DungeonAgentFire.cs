@@ -71,18 +71,44 @@ public class DungeonAgentFire : Agent
 
     IEnumerator GoalScoredSwapGroundMaterial(Material mat, float time)
     {
+        if (m_GroundRenderers.Count == 0)
+        {
+            GameObject[] groundObjects = GameObject.FindGameObjectsWithTag("ground");
+
+            // Get the Renderer component from each GameObject and add it to our list
+            foreach (GameObject groundObject in groundObjects)
+            {
+                Renderer rend = groundObject.GetComponent<Renderer>();
+                if (rend != null)
+                {
+                    m_GroundRenderers.Add(rend);
+                }
+            }
+            // m_GroundMaterial = m_GroundRenderer.material; // Note: You might need a mechanism to set this.
+        }
+
+        List<Renderer> validRenderers = new List<Renderer>();
+
         foreach (Renderer rend in m_GroundRenderers)
         {
-            rend.material = mat;
+            if (rend) // Check if the Renderer is still valid
+            {
+                validRenderers.Add(rend);
+                rend.material = mat;
+            }
         }
 
         yield return new WaitForSeconds(time);
 
-        foreach (Renderer rend in m_GroundRenderers)
+        foreach (Renderer rend in validRenderers)
         {
-            rend.material = m_GroundMaterial;
+            if (rend) // Check if the Renderer is still valid
+            {
+                rend.material = m_GroundMaterial;
+            }
         }
     }
+
     IEnumerator SwapGoalMaterial(Material mat, float time)
     {
         m_GoalRenderer.material = mat;
@@ -123,7 +149,7 @@ public class DungeonAgentFire : Agent
 
     void OnCollisionEnter(Collision col)
     {
-        Debug.Log(col.gameObject.tag);
+        // Debug.Log(col.gameObject.tag);
         if (col.gameObject.CompareTag("symbol_O_Goal"))
         {
             SetReward(2f);
@@ -201,15 +227,22 @@ public class DungeonAgentFire : Agent
         Debug.Log("ON EPISODE BEGIN");
         if (symbolOGoal)
         {
+            Vector3 randomFirePosition = roomManager.GetRandomGoalPosition();
+            // Debug.Log("RoomManager.GetRandomGoalPosition()" + randomFirePosition);
+            symbolOGoal.transform.position = randomFirePosition;
+            m_GoalRenderer = symbolOGoal.GetComponent<Renderer>();
+            m_GoalMaterial = m_GoalRenderer.material;
+
             fireParticleSystem = symbolOGoal.transform.Find("CFX4 Fire").GetComponent<ParticleSystem>();
             // waterParticleSystem = symbolOGoal.transform.Find("CFX2_Big_Splash (No Collision)").GetComponent<ParticleSystem>();
             fireParticleSystem.Clear();
             fireParticleSystem.Play();
         }
+
         var agentOffset = -18f;
         var blockOffset = -9f;
         m_Selection = Random.Range(0, 2);
-        Debug.Log("roomManager.GetStartPoint()" + roomManager.GetStartPoint());
+
         transform.position = roomManager.GetStartPoint() + new Vector3(0f, 0.5f, 0f);
         transform.rotation = Quaternion.Euler(0f, Random.Range(0f, 360f), 0f);
         m_AgentRb.velocity *= 0f;

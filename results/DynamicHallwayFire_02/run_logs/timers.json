@@ -1,0 +1,46 @@
+{
+    "name": "root",
+    "metadata": {
+        "timer_format_version": "0.1.0",
+        "start_time_seconds": "1693698136",
+        "python_version": "3.7.16 (default, Jan 17 2023, 16:06:28) [MSC v.1916 64 bit (AMD64)]",
+        "command_line_arguments": "C:\\Users\\dhh3hb\\Anaconda3\\envs\\ml-agents-108\\Scripts\\mlagents-learn config/DynamicHallwayFire.yaml --run-id=DynamicHallwayFire_02",
+        "mlagents_version": "0.17.0",
+        "mlagents_envs_version": "0.17.0",
+        "communication_protocol_version": "1.0.0",
+        "tensorflow_version": "2.11.0",
+        "end_time_seconds": "1693698155"
+    },
+    "total": 18.768127999999997,
+    "count": 1,
+    "self": 0.32902279999999706,
+    "children": {
+        "run_training.setup": {
+            "total": 0.024411699999999925,
+            "count": 1,
+            "self": 0.024411699999999925
+        },
+        "TrainerController.start_learning": {
+            "total": 18.4146935,
+            "count": 1,
+            "self": 0.0004867999999973449,
+            "children": {
+                "TrainerController._reset_env": {
+                    "total": 18.4139459,
+                    "count": 1,
+                    "self": 18.4139459
+                },
+                "trainer_threads": {
+                    "total": 1.4999999997655777e-06,
+                    "count": 1,
+                    "self": 1.4999999997655777e-06
+                },
+                "TrainerController._save_model": {
+                    "total": 0.0002592999999997403,
+                    "count": 1,
+                    "self": 0.0002592999999997403
+                }
+            }
+        }
+    }
+}
