@@ -142,34 +142,39 @@ public class DungeonAgentFire : Agent
 
     public override void OnActionReceived(float[] vectorAction)
     {
-        AddReward(-1f / MaxStep);
+        if (MaxStep != 0)
+        {
+            AddReward(-1f / MaxStep);
+        }
+
         MoveAgent(vectorAction);
     }
 
 
-    void OnCollisionEnter(Collision col)
-    {
-        // Debug.Log(col.gameObject.tag);
-        if (col.gameObject.CompareTag("symbol_O_Goal"))
-        {
-            SetReward(2f);
-            StartCoroutine(GoalScoredSwapGroundMaterial(m_HallwaySettings.goalScoredMaterial, 0.5f));
-            StartCoroutine(SwapGoalMaterial(m_HallwaySettings.waterMaterial, 0.5f));
 
-            PlayWaterAndStopFire();
-            // EndEpisode();
-            StartCoroutine(DelayedEndEpisode()); // Use the coroutine here
+    // void OnCollisionEnter(Collision col)
+    // {
+    //     // Debug.Log(col.gameObject.tag);
+    //     if (col.gameObject.CompareTag("symbol_O_Goal"))
+    //     {
+    //         SetReward(2f);
+    //         StartCoroutine(GoalScoredSwapGroundMaterial(m_HallwaySettings.goalScoredMaterial, 0.5f));
+    //         StartCoroutine(SwapGoalMaterial(m_HallwaySettings.waterMaterial, 0.5f));
 
-        }
-        // else
-        // {
-        //     SetReward(-0.1f);
-        //     StartCoroutine(GoalScoredSwapGroundMaterial(m_HallwaySettings.failMaterial, 0.5f));
-        // }
-        // DoorComponent.CloseDoor();
-        // doorSwitch.isPressed = false;
+    //         PlayWaterAndStopFire();
+    //         // EndEpisode();
+    //         StartCoroutine(DelayedEndEpisode()); // Use the coroutine here
 
-    }
+    //     }
+    //     // else
+    //     // {
+    //     //     SetReward(-0.1f);
+    //     //     StartCoroutine(GoalScoredSwapGroundMaterial(m_HallwaySettings.failMaterial, 0.5f));
+    //     // }
+    //     // DoorComponent.CloseDoor();
+    //     // doorSwitch.isPressed = false;
+
+    // }
     private IEnumerator DelayedEndEpisode()
     {
         yield return new WaitForSeconds(0.5f); // Wait for 1 second
