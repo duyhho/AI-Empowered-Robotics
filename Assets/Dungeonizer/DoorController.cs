@@ -49,5 +49,9 @@ public class DoorController : MonoBehaviour
                 break;
         }
     }
+    public void Reset()
+    {
+        doorIsOpen = false;
+    }
 
 }

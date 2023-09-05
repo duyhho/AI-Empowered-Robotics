@@ -154,6 +154,15 @@ public class ModernRoomGenerator : MonoBehaviour
     public DungeonAgentFire agent;
     RoomManager roomManager;
 
+    public enum DoorGenerationOption
+    {
+        NoDoor,
+        AllDoors,
+        RandomDoors
+    }
+    [Tooltip("Enable Door Generation")]
+    public DoorGenerationOption generateDoor = DoorGenerationOption.AllDoors;
+
     class Dungeon
     {
         public static int map_size;
@@ -1059,12 +1068,18 @@ public class ModernRoomGenerator : MonoBehaviour
         }
 
         // DOORS
-        if (doorPrefab)
+
+        if (doorPrefab && generateDoor != DoorGenerationOption.NoDoor)
         {
             for (int i = 0; i < spawnedObjectLocations.Count; i++)
             {
                 if (spawnedObjectLocations[i].asDoor > 0)
                 {
+                    // Handle Door Generation Option:
+                    if (generateDoor == DoorGenerationOption.RandomDoors && Random.Range(0f, 1f) > 0.5f)
+                    {
+                        continue; // Skip to next iteration.
+                    }
                     GameObject newObject;
                     SpawnList spawnLocation = spawnedObjectLocations[i];
                     Debug.Log("Door location: " + spawnLocation.x + ", " + spawnLocation.y + ", direction: " + spawnLocation.asDoor);
@@ -1131,6 +1146,8 @@ public class ModernRoomGenerator : MonoBehaviour
             }
 
         }
+
+
 
     }
     // Use this for initialization

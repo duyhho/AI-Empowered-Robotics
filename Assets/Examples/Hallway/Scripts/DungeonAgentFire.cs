@@ -230,6 +230,12 @@ public class DungeonAgentFire : Agent
     public override void OnEpisodeBegin()
     {
         Debug.Log("ON EPISODE BEGIN");
+        // Reset all doors in the scene
+        DoorController[] allDoors = FindObjectsOfType<DoorController>();
+        foreach (DoorController door in allDoors)
+        {
+            door.Reset();
+        }
         if (symbolOGoal)
         {
             Vector3 randomFirePosition = roomManager.GetRandomGoalPosition();
@@ -243,23 +249,9 @@ public class DungeonAgentFire : Agent
             fireParticleSystem.Clear();
             fireParticleSystem.Play();
         }
-
-        var agentOffset = -18f;
-        var blockOffset = -9f;
-        m_Selection = Random.Range(0, 2);
-
         transform.position = roomManager.GetStartPoint() + new Vector3(0f, 0.5f, 0f);
         transform.rotation = Quaternion.Euler(0f, Random.Range(0f, 360f), 0f);
         m_AgentRb.velocity *= 0f;
-
-        var goalPos = Random.Range(0, 2);
-        // symbolOGoal.transform.position = new Vector3(Random.Range(-7f, 7f), 0.5f, 22.29f) + area.transform.position;
-
-
-        // DoorComponent.CloseDoor();
-        // doorSwitch.isPressed = false;
-        // doorGenerator.GenerateDoor();
-
 
     }
     public void PlayWaterAndStopFire()
