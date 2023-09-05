@@ -9,6 +9,13 @@ TagManager:
   - agent
   - door_switch
   - wall
+  - walkableSurface
+  - block
+  - goal
+  - symbol_X
+  - symbol_X_Goal
+  - symbol_O
+  - door
   layers:
   - Default
   - TransparentFX

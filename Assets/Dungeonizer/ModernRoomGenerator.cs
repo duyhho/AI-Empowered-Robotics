@@ -203,7 +203,7 @@ public class ModernRoomGenerator : MonoBehaviour
         public void Generate()
         {
             int roomWidth = this.corridorWidth;
-            int room_count = this.maximumRoomCount;
+            int room_count = Random.Range(2, this.maximumRoomCount + 1);
             int min_size = this.min_size;
             int max_size = this.max_size;
             map = new List<MapTile>();
@@ -464,6 +464,16 @@ public class ModernRoomGenerator : MonoBehaviour
                     };
                     corridor.CalculateLength();
                     corridors.Add(corridor);
+                    int centerOffset;
+                    if (corridorWidth % 2 == 0) // Even
+                    {
+                        centerOffset = corridorWidth / 2 - 1; // one tile to the left (or top) of the "true" center
+                    }
+                    else // Odd
+                    {
+                        centerOffset = corridorWidth / 2; // true center
+                    }
+                    bool doorPlaced = false;
                     while ((pointB.x != pointA.x) || (pointB.y != pointA.y))
                     {
                         if (pointB.x != pointA.x)
@@ -521,35 +531,36 @@ public class ModernRoomGenerator : MonoBehaviour
                         for (int w = 0; w < corridorWidth; w++)
                         {
                             MapTile newCorridorTile = new MapTile();
-                            newCorridorTile.type = 3;
+                            newCorridorTile.type = 3; // corridor type
 
                             int corridorTileX, corridorTileY;
-
                             if (horizontalCorridor)
                             {
                                 corridorTileX = pointB.x;
                                 corridorTileY = pointB.y + w;
-                                // Debug.Log("Point B + W:" + (pointB.y + w));
                             }
                             else
                             {
                                 corridorTileX = pointB.x + w;
                                 corridorTileY = pointB.y;
                             }
-                            // Remove wall tile if it exists at this position
-                            map.RemoveAll(item => (corridorTileX == item.x && corridorTileY == item.y && Dungeon.walls.Contains(item.type)));
+
+                            // Remove any tile (wall, corridor, door, etc.) at the target position
+                            map.RemoveAll(item => (corridorTileX == item.x && corridorTileY == item.y));
 
                             newCorridorTile.x = corridorTileX;
                             newCorridorTile.y = corridorTileY;
 
-                            if (isWall)
+                            if (isWall && w == centerOffset && !doorPlaced)
                             {
-                                nextTileBlocksDoor = true;
                                 newCorridorTile.isDoor = true;
                                 newCorridorTile.doorDirection = doorDirection;
+                                doorPlaced = true; // Mark that the door has been placed
                             }
+
                             map.Add(newCorridorTile);
                         }
+
 
 
 
@@ -1047,54 +1058,79 @@ public class ModernRoomGenerator : MonoBehaviour
             }
         }
 
-        //DOORS
-        // if (doorPrefab)
-        // {
-        //     for (int i = 0; i < spawnedObjectLocations.Count; i++)
-        //     {
-        //         if (spawnedObjectLocations[i].asDoor > 0)
-        //         {
-        //             GameObject newObject;
-        //             SpawnList spawnLocation = spawnedObjectLocations[i];
+        // DOORS
+        if (doorPrefab)
+        {
+            for (int i = 0; i < spawnedObjectLocations.Count; i++)
+            {
+                if (spawnedObjectLocations[i].asDoor > 0)
+                {
+                    GameObject newObject;
+                    SpawnList spawnLocation = spawnedObjectLocations[i];
+                    Debug.Log("Door location: " + spawnLocation.x + ", " + spawnLocation.y + ", direction: " + spawnLocation.asDoor);
+                    GameObject doorPrefabToUse = doorPrefab;
+                    Room room = spawnLocation.room;
+                    if (room != null)
+                    {
+                        foreach (CustomRoom customroom in customRooms)
+                        {
+                            if (customroom.roomId == room.room_id)
+                            {
+                                doorPrefabToUse = customroom.doorPrefab;
+                                break;
+                            }
+                        }
+                    }
 
-        //             GameObject doorPrefabToUse = doorPrefab;
-        //             Room room = spawnLocation.room;
-        //             if (room != null)
-        //             {
-        //                 foreach (CustomRoom customroom in customRooms)
-        //                 {
-        //                     if (customroom.roomId == room.room_id)
-        //                     {
-        //                         doorPrefabToUse = customroom.doorPrefab;
-        //                         break;
-        //                     }
-        //                 }
-        //             }
+                    float offsetX = 0f;
+                    float offsetZ = 0f;
+                    float halfDoorWidth = doorPrefabToUse.transform.localScale.x / 2f - 0.4f; // assuming your door's scale in the prefab is set correctly
 
-        //             if (!makeIt3d)
-        //             {
-        //                 newObject = GameObject.Instantiate(doorPrefabToUse, new Vector3(spawnLocation.x * tileScaling, spawnLocation.y * tileScaling, 0), Quaternion.identity) as GameObject;
-        //             }
-        //             else
-        //             {
-        //                 newObject = GameObject.Instantiate(doorPrefabToUse, new Vector3(spawnLocation.x * tileScaling, 0, spawnLocation.y * tileScaling), Quaternion.identity) as GameObject;
-        //             }
 
-        //             if (!makeIt3d)
-        //             {
-        //                 newObject.transform.Rotate(Vector3.forward * (-90 * (spawnedObjectLocations[i].asDoor - 1)));
-        //             }
-        //             else
-        //             {
-        //                 newObject.transform.Rotate(Vector3.up * (-90 * (spawnedObjectLocations[i].asDoor - 1)));
-        //             }
 
-        //             newObject.transform.parent = transform;
-        //             spawnedObjectLocations[i].spawnedObject = newObject;
+                    switch (spawnLocation.asDoor)
+                    {
+                        case 1:
+                            offsetX = -halfDoorWidth;
+                            break;
+                        case 2:
+                            offsetZ = -halfDoorWidth;
+                            break;
+                        case 3:
+                            offsetX = halfDoorWidth;
+                            break;
+                        case 4:
+                            offsetZ = halfDoorWidth;
+                            break;
+                    }
 
-        //         }
-        //     }
-        // }
+                    if (!makeIt3d)
+                    {
+                        newObject = GameObject.Instantiate(doorPrefabToUse, new Vector3((spawnLocation.x + offsetX) * tileScaling, spawnLocation.y * tileScaling, 0), Quaternion.identity) as GameObject;
+                    }
+                    else
+                    {
+                        newObject = GameObject.Instantiate(doorPrefabToUse, new Vector3((spawnLocation.x * tileScaling) + offsetX, 0, (spawnLocation.y * tileScaling) + offsetZ), Quaternion.identity) as GameObject;
+                    }
+
+                    DoorController doorController = newObject.GetComponent<DoorController>();
+                    doorController.doorOrientation = spawnLocation.asDoor;
+
+                    if (!makeIt3d)
+                    {
+                        newObject.transform.Rotate(Vector3.forward * (-90 * (spawnedObjectLocations[i].asDoor - 1)));
+                    }
+                    else
+                    {
+                        newObject.transform.Rotate(Vector3.up * (-90 * (spawnedObjectLocations[i].asDoor - 1)));
+                    }
+
+                    newObject.transform.parent = transform;
+                    spawnedObjectLocations[i].spawnedObject = newObject;
+                }
+            }
+
+        }
 
     }
     // Use this for initialization
