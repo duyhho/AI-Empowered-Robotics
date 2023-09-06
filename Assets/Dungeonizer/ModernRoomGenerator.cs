@@ -1125,7 +1125,7 @@ public class ModernRoomGenerator : MonoBehaviour
                     }
                     else
                     {
-                        newObject = GameObject.Instantiate(doorPrefabToUse, new Vector3((spawnLocation.x * tileScaling) + offsetX, 0, (spawnLocation.y * tileScaling) + offsetZ), Quaternion.identity) as GameObject;
+                        newObject = GameObject.Instantiate(doorPrefabToUse, new Vector3((spawnLocation.x * tileScaling) + offsetX, 0 + parentOffsetHeight, (spawnLocation.y * tileScaling) + offsetZ), Quaternion.identity) as GameObject;
                     }
 
                     DoorController doorController = newObject.GetComponent<DoorController>();
