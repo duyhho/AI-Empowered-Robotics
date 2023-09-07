@@ -16,6 +16,7 @@ TagManager:
   - symbol_X_Goal
   - symbol_O
   - door
+  - fire
   layers:
   - Default
   - TransparentFX

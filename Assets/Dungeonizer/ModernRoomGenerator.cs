@@ -153,7 +153,7 @@ public class ModernRoomGenerator : MonoBehaviour
     GameObject exitGameObject;
     public DungeonAgentFire agent;
     RoomManager roomManager;
-
+    GridManager gridManager;
     public enum DoorGenerationOption
     {
         NoDoor,
@@ -541,6 +541,7 @@ public class ModernRoomGenerator : MonoBehaviour
                         {
                             MapTile newCorridorTile = new MapTile();
                             newCorridorTile.type = 3; // corridor type
+                            newCorridorTile.room = roomA;
 
                             int corridorTileX, corridorTileY;
                             if (horizontalCorridor)
@@ -671,6 +672,9 @@ public class ModernRoomGenerator : MonoBehaviour
     {
 
         roomManager = GetComponent<RoomManager>();
+        gridManager = GetComponent<GridManager>();
+
+        gridManager.ResetGrid();
         Dungeon dungeon = new Dungeon();
 
         dungeon.min_size = minRoomSize;
@@ -713,6 +717,7 @@ public class ModernRoomGenerator : MonoBehaviour
             {
                 GameObject floorPrefabToUse = floorPrefab;
                 Room room = mapTile.room;
+                // Debug.Log("mapTile room: " + room);
                 if (room != null)
                 {
                     foreach (CustomRoom customroom in customRooms)
@@ -884,6 +889,8 @@ public class ModernRoomGenerator : MonoBehaviour
                     && !(mapTile.x == Dungeon.goalRoom.x + Mathf.FloorToInt(Dungeon.goalRoom.w / 2) && mapTile.y == Dungeon.goalRoom.y + Mathf.FloorToInt(Dungeon.goalRoom.h / 2))
                  )
             {
+                // Debug.Log("mapTile.room: " + mapTile.room);
+
                 var location = new SpawnList();
                 location.byWall = mapTile.isEdge;
                 location.wallLocation = mapTile.edgeLocation;
@@ -918,6 +925,8 @@ public class ModernRoomGenerator : MonoBehaviour
 
                 if (mapTile.isDoor)
                 {
+                    // Debug.Log("mapTile.room: " + mapTile.room);
+
                     location.byCorridor = true;
                     location.asDoor = mapTile.doorDirection;
                     location.room = mapTile.room;
@@ -1082,15 +1091,21 @@ public class ModernRoomGenerator : MonoBehaviour
                     }
                     GameObject newObject;
                     SpawnList spawnLocation = spawnedObjectLocations[i];
-                    Debug.Log("Door location: " + spawnLocation.x + ", " + spawnLocation.y + ", direction: " + spawnLocation.asDoor);
+
+                    // Debug.Log("Door location: " + spawnLocation.x + ", " + spawnLocation.y + ", direction: " + spawnLocation.asDoor);
                     GameObject doorPrefabToUse = doorPrefab;
                     Room room = spawnLocation.room;
+                    // Debug.Log("room: " + room);
+                    // Debug.Log("spawnLocation.room:" + (spawnLocation.room == null));
                     if (room != null)
                     {
                         foreach (CustomRoom customroom in customRooms)
                         {
+                            // Debug.Log("customRoomID: " + customroom.roomId + " RoomID: " + room.room_id);
+
                             if (customroom.roomId == room.room_id)
                             {
+                                // Debug.Log("using " + customroom.doorPrefab);
                                 doorPrefabToUse = customroom.doorPrefab;
                                 break;
                             }

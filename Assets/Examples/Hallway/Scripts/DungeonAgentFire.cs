@@ -31,6 +31,8 @@ public class DungeonAgentFire : Agent
 
     Material m_GoalMaterial;
     Renderer m_GoalRenderer;
+    public GridManager gridManager;
+    Vector2Int lastGridPosition;
     public override void Initialize()
     {
         // Debug.Log("Init");
@@ -111,9 +113,16 @@ public class DungeonAgentFire : Agent
 
     IEnumerator SwapGoalMaterial(Material mat, float time)
     {
-        m_GoalRenderer.material = mat;
-        yield return new WaitForSeconds(time);
-        m_GoalRenderer.material = m_GoalMaterial;
+        if (m_GoalRenderer)
+        {
+            m_GoalRenderer.material = mat;
+            yield return new WaitForSeconds(time);
+            m_GoalRenderer.material = m_GoalMaterial;
+        }
+        else
+        {
+
+        }
     }
     public void MoveAgent(float[] act)
     {
@@ -152,32 +161,41 @@ public class DungeonAgentFire : Agent
 
 
 
-    // void OnCollisionEnter(Collision col)
-    // {
-    //     // Debug.Log(col.gameObject.tag);
-    //     if (col.gameObject.CompareTag("symbol_O_Goal"))
-    //     {
-    //         SetReward(2f);
-    //         StartCoroutine(GoalScoredSwapGroundMaterial(m_HallwaySettings.goalScoredMaterial, 0.5f));
-    //         StartCoroutine(SwapGoalMaterial(m_HallwaySettings.waterMaterial, 0.5f));
+    void OnCollisionEnter(Collision col)
+    {
+        // Debug.Log(col.gameObject.tag);
+        // if (col.gameObject.CompareTag("ground"))
+        // {
+        //     Debug.Log("Set ground!!");
 
-    //         PlayWaterAndStopFire();
-    //         // EndEpisode();
-    //         StartCoroutine(DelayedEndEpisode()); // Use the coroutine here
+        //     gridManager.SetGround(transform.position);
+        // }
+        if (col.gameObject.CompareTag("wall"))
+        {
+            Debug.Log("Hit wall!!");
 
-    //     }
-    //     // else
-    //     // {
-    //     //     SetReward(-0.1f);
-    //     //     StartCoroutine(GoalScoredSwapGroundMaterial(m_HallwaySettings.failMaterial, 0.5f));
-    //     // }
-    //     // DoorComponent.CloseDoor();
-    //     // doorSwitch.isPressed = false;
+            gridManager.SetWall(transform.position);
 
-    // }
+        }
+    }
+    void OnCollisionStay(Collision col)
+    {
+        if (col.gameObject.CompareTag("ground"))
+        {
+            Vector2Int currentGridPosition = gridManager.WorldToGrid(transform.position);
+
+            if (currentGridPosition != lastGridPosition)
+            {
+                Debug.Log("Set ground!!");
+
+                gridManager.SetGround(transform.position);
+                lastGridPosition = currentGridPosition;
+            }
+        }
+    }
     private IEnumerator DelayedEndEpisode()
     {
-        yield return new WaitForSeconds(0.5f); // Wait for 1 second
+        yield return new WaitForSeconds(0.6f); // Wait for 1 second
         EndEpisode();
     }
 
@@ -188,10 +206,12 @@ public class DungeonAgentFire : Agent
             Debug.Log("Hit door! Reward!");
             SetReward(1f);
             // EndEpisode();
+            gridManager.SetDoor(transform.position);
 
         }
+
         Debug.Log(other.gameObject.tag);
-        if (other.gameObject.CompareTag("symbol_O_Goal"))
+        if (other.gameObject.CompareTag("symbol_O_Goal") || other.gameObject.CompareTag("fire"))
         {
             SetReward(2f);
             StartCoroutine(GoalScoredSwapGroundMaterial(m_HallwaySettings.goalScoredMaterial, 0.5f));
@@ -201,7 +221,10 @@ public class DungeonAgentFire : Agent
             // EndEpisode();
             StartCoroutine(DelayedEndEpisode()); // Use the coroutine here
 
+            gridManager.SetFire(transform.position);
+
         }
+
     }
 
 
@@ -230,12 +253,14 @@ public class DungeonAgentFire : Agent
     public override void OnEpisodeBegin()
     {
         Debug.Log("ON EPISODE BEGIN");
+        gridManager.ResetGrid();
         // Reset all doors in the scene
-        DoorController[] allDoors = FindObjectsOfType<DoorController>();
+        DoorController[] allDoors = area.GetComponentsInChildren<DoorController>();
         foreach (DoorController door in allDoors)
         {
             door.Reset();
         }
+
         if (symbolOGoal)
         {
             Vector3 randomFirePosition = roomManager.GetRandomGoalPosition();
