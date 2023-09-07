@@ -33,6 +33,8 @@ public class DungeonAgentFire : Agent
     Renderer m_GoalRenderer;
     public GridManager gridManager;
     Vector2Int lastGridPosition;
+    public float downAngle = 20f;
+    public float sideAngle = 25f; // angle for the side rays
     public override void Initialize()
     {
         // Debug.Log("Init");
@@ -64,11 +66,104 @@ public class DungeonAgentFire : Agent
     public override void CollectObservations(VectorSensor sensor)
     {
         // Debug.Log("Collecting Observations");
-
+        RaycastUpdateGrid();
         if (useVectorObs)
         {
             sensor.AddObservation(StepCount / (float)MaxStep);
         }
+    }
+    void RaycastUpdateGrid()
+    {
+
+        Vector3 rayOrigin = transform.position;
+
+        // Get the current rotation of the agent
+        Quaternion agentRotation = transform.rotation;
+
+        // Initialize the forward direction in world space
+        Vector3 rayDirection = agentRotation * Vector3.forward;
+
+        // To create a downward ray, we first create it in world space, then apply the agent's rotation
+        Vector3 rayDirectionDown = agentRotation * (Quaternion.Euler(downAngle, 0, 0) * Vector3.forward);
+
+        // Define directions for diverging rays
+        Vector3 rayDirectionDownLeft = Quaternion.Euler(0, -sideAngle, 0) * rayDirectionDown;
+        Vector3 rayDirectionDownRight = Quaternion.Euler(0, sideAngle, 0) * rayDirectionDown;
+        Vector3 rayDirectionLeft = Quaternion.Euler(0, -sideAngle, 0) * rayDirection;
+        Vector3 rayDirectionRight = Quaternion.Euler(0, sideAngle, 0) * rayDirection;
+
+        Vector3[] rayDirections = {
+        rayDirection, rayDirectionDown, rayDirectionDownLeft,
+        rayDirectionDownRight, rayDirectionLeft, rayDirectionRight
+    };
+        RaycastHit hitInfo;
+        float rayDistance = 10.0f; // Change as needed
+
+        foreach (var dir in rayDirections)
+        {
+            if (Physics.Raycast(rayOrigin, dir, out hitInfo, rayDistance))
+            {
+                // Debug.Log("hitInfo.collider.gameObject: " + hitInfo.collider.gameObject.tag);
+                if (hitInfo.collider.gameObject.CompareTag("wall"))
+                {
+                    gridManager.SetWall(hitInfo.point);
+                }
+                else if (hitInfo.collider.gameObject.CompareTag("ground"))
+                {
+                    gridManager.SetGround(hitInfo.point);
+                }
+                else if (hitInfo.collider.gameObject.CompareTag("door_switch"))
+                {
+                    gridManager.SetDoor(hitInfo.point);
+                }
+                else if (hitInfo.collider.gameObject.CompareTag("symbol_O_Goal") || hitInfo.collider.gameObject.CompareTag("fire"))
+                {
+                    gridManager.SetFire(hitInfo.point);
+                }
+            }
+        }
+    }
+    void OnDrawGizmos()
+    {
+
+        // float downAngle = 10f;
+        // float sideAngle = 25f; // angle for the side rays
+        Vector3 rayOrigin = transform.position;
+
+        // Get the current rotation of the agent
+        Quaternion agentRotation = transform.rotation;
+
+        // Initialize the forward direction in world space
+        Vector3 rayDirection = agentRotation * Vector3.forward;
+
+        // To create a downward ray, we first create it in world space, then apply the agent's rotation
+        Vector3 rayDirectionDown = agentRotation * (Quaternion.Euler(downAngle, 0, 0) * Vector3.forward);
+
+
+        float rayDistance = 10.0f; // Change as needed
+        // Define directions for diverging rays
+        Vector3 rayDirectionDownLeft = Quaternion.Euler(0, -sideAngle, 0) * rayDirectionDown;
+        Vector3 rayDirectionDownRight = Quaternion.Euler(0, sideAngle, 0) * rayDirectionDown;
+        Vector3 rayDirectionLeft = Quaternion.Euler(0, -sideAngle, 0) * rayDirection;
+        Vector3 rayDirectionRight = Quaternion.Euler(0, sideAngle, 0) * rayDirection;
+
+        Vector3[] rayDirections = {
+        rayDirection, rayDirectionDown, rayDirectionDownLeft,
+        rayDirectionDownRight, rayDirectionLeft, rayDirectionRight
+    };
+
+        Color[] rayColors = {
+        Color.red, Color.blue, Color.yellow,
+        Color.green, Color.magenta, Color.cyan
+    };
+
+        for (int i = 0; i < rayDirections.Length; i++)
+        {
+            Gizmos.color = rayColors[i];
+            Gizmos.DrawLine(rayOrigin, rayOrigin + rayDirections[i] * rayDistance);
+        }
+
+        // ... (rest of your existing OnDrawGizmos code)
     }
 
     IEnumerator GoalScoredSwapGroundMaterial(Material mat, float time)
@@ -110,6 +205,9 @@ public class DungeonAgentFire : Agent
             }
         }
     }
+
+
+
 
     IEnumerator SwapGoalMaterial(Material mat, float time)
     {
@@ -175,6 +273,8 @@ public class DungeonAgentFire : Agent
             Debug.Log("Hit wall!!");
 
             gridManager.SetWall(transform.position);
+            gridManager.SetVisited(transform.position);
+
 
         }
     }
@@ -186,9 +286,10 @@ public class DungeonAgentFire : Agent
 
             if (currentGridPosition != lastGridPosition)
             {
-                Debug.Log("Set ground!!");
+                // Debug.Log("Set ground!!");
 
                 gridManager.SetGround(transform.position);
+                gridManager.SetVisited(transform.position);
                 lastGridPosition = currentGridPosition;
             }
         }
@@ -207,6 +308,7 @@ public class DungeonAgentFire : Agent
             SetReward(1f);
             // EndEpisode();
             gridManager.SetDoor(transform.position);
+            gridManager.SetVisited(transform.position);
 
         }
 
@@ -222,6 +324,7 @@ public class DungeonAgentFire : Agent
             StartCoroutine(DelayedEndEpisode()); // Use the coroutine here
 
             gridManager.SetFire(transform.position);
+            gridManager.SetVisited(transform.position);
 
         }
 
@@ -303,5 +406,6 @@ public class DungeonAgentFire : Agent
         }
 
     }
+
 
 }

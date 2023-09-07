@@ -7,9 +7,9 @@ public class GridManager : MonoBehaviour
     public GameObject agent;
     public Vector3 gridOrigin = Vector3.zero;  // Origin of the grid in world space
     public float cellSize = 1.0f;  // Size of each grid cell
-    public Vector2 environmentSize = new Vector2(200, 200); // example 20x20 meters environment
+    public Vector2 environmentSize = new Vector2(150, 150); // example 20x20 meters environment
     public float resizeBuffer = 10f; // The buffer zone near the edges of the grid
-    public float gridExpansionAmount = 50f; // The amount to expand the grid by
+    public int gridExpansionAmount = 50; // The amount to expand the grid by
     public class GridCell
     {
         public bool isVisited = false;
@@ -19,7 +19,8 @@ public class GridManager : MonoBehaviour
         public bool hasFire = false;
     }
     GridCell[,] grid;
-
+    float lastResizeTime = 0f;
+    float resizeCooldown = 1f; // Set a cooldown time of 1 second
     void Start()
     {
         Vector3 agentInitialPos = agent.transform.position;
@@ -36,41 +37,66 @@ public class GridManager : MonoBehaviour
     }
     void Update()
     {
-        Vector2Int agentGridPos = WorldToGrid(agent.transform.position);
 
-        int xMax = grid.GetLength(0) - 1;
-        int yMax = grid.GetLength(1) - 1;
 
-        // Check if the agent is nearing the edges of the grid
-        if (agentGridPos.x < resizeBuffer || agentGridPos.y < resizeBuffer ||
-            agentGridPos.x > xMax - resizeBuffer || agentGridPos.y > yMax - resizeBuffer)
+        // Cooldown to prevent frequent resizing
+        if (Time.time - lastResizeTime < resizeCooldown)
         {
-            // Resize the grid
-            environmentSize += new Vector2(gridExpansionAmount, gridExpansionAmount);
-            ResizeGrid(environmentSize);
+            return;
         }
+
+
+        ResizeGrid();
+
     }
 
-    void ResizeGrid(Vector2 newSize)
+    void ResizeGrid()
     {
         // Save the old grid data
         GridCell[,] oldGrid = grid;
+        int xMax = grid.GetLength(0) - 1;
+        int yMax = grid.GetLength(1) - 1;
 
-        // Create and initialize a new grid with the new dimensions
-        grid = new GridCell[Mathf.FloorToInt(newSize.x / cellSize), Mathf.FloorToInt(newSize.y / cellSize)];
+        Vector2Int agentGridPos = WorldToGrid(agent.transform.position);
 
-        for (int i = 0; i < grid.GetLength(0); i++)
+        // Determine the amount to expand on each edge
+        int expandLeft = agentGridPos.x < resizeBuffer ? gridExpansionAmount : 0;
+        int expandRight = agentGridPos.x > xMax - resizeBuffer ? gridExpansionAmount : 0;
+        int expandBottom = agentGridPos.y < resizeBuffer ? gridExpansionAmount : 0;
+        int expandTop = agentGridPos.y > yMax - resizeBuffer ? gridExpansionAmount : 0;
+
+        // Adjust the gridOrigin to keep the 'world' positions of the cells consistent
+        gridOrigin.x -= expandLeft * cellSize;
+        gridOrigin.z -= expandBottom * cellSize;
+
+        if (expandLeft > 0 || expandRight > 0 || expandBottom > 0 || expandTop > 0)
         {
-            for (int j = 0; j < grid.GetLength(1); j++)
-            {
-                grid[i, j] = new GridCell();
+            // Calculating the new environment size based on the expansions
+            environmentSize = new Vector2(environmentSize.x + expandLeft + expandRight, environmentSize.y + expandBottom + expandTop);
 
-                // If the old grid has data at this index, copy it to the new grid
-                if (i < oldGrid.GetLength(0) && j < oldGrid.GetLength(1))
+            // Create and initialize a new grid with the new dimensions
+            grid = new GridCell[Mathf.FloorToInt(environmentSize.x / cellSize), Mathf.FloorToInt(environmentSize.y / cellSize)];
+
+            for (int i = 0; i < grid.GetLength(0); i++)
+            {
+                for (int j = 0; j < grid.GetLength(1); j++)
                 {
-                    grid[i, j] = oldGrid[i, j];
+                    grid[i, j] = new GridCell();
+
+                    // Calculate the corresponding index in the old grid
+                    int oldGridX = i - expandLeft;
+                    int oldGridY = j - expandBottom;
+
+                    // If the old grid has data at this index, copy it to the new grid
+                    if (oldGridX >= 0 && oldGridY >= 0 && oldGridX < oldGrid.GetLength(0) && oldGridY < oldGrid.GetLength(1))
+                    {
+                        grid[i, j] = oldGrid[oldGridX, oldGridY];
+                    }
                 }
             }
+
+            // Update last resize time to implement a cooldown
+            lastResizeTime = Time.time;
         }
     }
 
@@ -87,84 +113,192 @@ public class GridManager : MonoBehaviour
         return new Vector2Int(x, y);
     }
 
+
     public void SetVisited(Vector3 worldPosition, bool state = true)
     {
         Vector2Int gridPosition = WorldToGrid(worldPosition);
-        grid[gridPosition.x, gridPosition.y].isVisited = state;
+        if (grid[gridPosition.x, gridPosition.y].isVisited != state)
+        {
+            grid[gridPosition.x, gridPosition.y].isVisited = state;
+            // Optionally: Trigger any events or notifications about the state change
+        }
     }
-
 
     public void SetWall(Vector3 worldPosition, bool state = true)
     {
         Vector2Int gridPosition = WorldToGrid(worldPosition);
-        grid[gridPosition.x, gridPosition.y].hasWall = state;
+        if (grid[gridPosition.x, gridPosition.y].hasWall != state)
+        {
+            grid[gridPosition.x, gridPosition.y].hasWall = state;
+            // Optionally: Trigger any events or notifications about the state change
+        }
     }
 
     public void SetDoor(Vector3 worldPosition, bool state = true)
     {
         Vector2Int gridPosition = WorldToGrid(worldPosition);
-        grid[gridPosition.x, gridPosition.y].hasDoor = state;
+        if (grid[gridPosition.x, gridPosition.y].hasDoor != state)
+        {
+            grid[gridPosition.x, gridPosition.y].hasDoor = state;
+            // Optionally: Trigger any events or notifications about the state change
+        }
     }
 
     public void SetGround(Vector3 worldPosition, bool state = true)
     {
         Vector2Int gridPosition = WorldToGrid(worldPosition);
-        grid[gridPosition.x, gridPosition.y].hasGround = state;
+        if (grid[gridPosition.x, gridPosition.y].hasGround != state)
+        {
+            grid[gridPosition.x, gridPosition.y].hasGround = state;
+            // Optionally: Trigger any events or notifications about the state change
+        }
     }
 
     public void SetFire(Vector3 worldPosition, bool state = true)
     {
         Vector2Int gridPosition = WorldToGrid(worldPosition);
-        grid[gridPosition.x, gridPosition.y].hasFire = state;
+        if (grid[gridPosition.x, gridPosition.y].hasFire != state)
+        {
+            grid[gridPosition.x, gridPosition.y].hasFire = state;
+            // Optionally: Trigger any events or notifications about the state change
+        }
     }
+
 
 
     public void ResetGrid()
     {
-        for (int x = 0; x < grid.GetLength(0); x++)
+        Debug.Log("grid:" + grid);
+        if (grid == null) return;
+        // Calculating the new environment size based on the expansions
+        environmentSize = new Vector2(150, 150);
+        // Create and initialize a new grid with the new dimensions
+
+        Vector3 agentInitialPos = agent.transform.position;
+        gridOrigin = new Vector3(agentInitialPos.x - (environmentSize.x / 2), agentInitialPos.y, agentInitialPos.z - (environmentSize.y / 2));
+        grid = new GridCell[Mathf.FloorToInt(environmentSize.x / cellSize), Mathf.FloorToInt(environmentSize.y / cellSize)];
+
+        for (int i = 0; i < grid.GetLength(0); i++)
         {
-            for (int y = 0; y < grid.GetLength(1); y++)
+            for (int j = 0; j < grid.GetLength(1); j++)
             {
-                grid[x, y].isVisited = false;
-                grid[x, y].hasWall = false;
-                grid[x, y].hasDoor = false;
-                grid[x, y].hasGround = false;
-                grid[x, y].hasFire = false;
+                grid[i, j] = new GridCell();
             }
         }
     }
     void OnDrawGizmos()
     {
-        if (grid == null) return;
 
+        if (grid == null) return;
+        float offset = 150f;
         for (int x = 0; x < grid.GetLength(0); x++)
         {
             for (int y = 0; y < grid.GetLength(1); y++)
             {
-                Vector3 cellWorldPosition = new Vector3(gridOrigin.x + x * cellSize - 150f, gridOrigin.y - 1f, gridOrigin.z + y * cellSize);
+                Vector3 cellWorldPosition = new Vector3(gridOrigin.x + x * cellSize - offset, gridOrigin.y - 1f, gridOrigin.z + y * cellSize);
 
-                Gizmos.color = Color.gray;
+                // Default color (not recognized by raycast or visit)
+                Gizmos.color = new Color(0.75f, 0.75f, 0.75f, 1.0f);
 
-                // Set default color to ground if it has ground
+                // Raycast hit but not visited
+                float opacity = 0.5f;
                 if (grid[x, y].hasGround)
-                    Gizmos.color = Color.blue;
-                if (grid[x, y].isVisited)
-                    Gizmos.color = Color.green;
-                // Override with other states if present
+                {
+                    Gizmos.color = new Color(0.53f, 0.81f, 0.98f, opacity); // Blue with 0.7 opacity
+                    // If visited, override with full opacity
+                    if (grid[x, y].isVisited)
+                        Gizmos.color = new Color(0.0f, 0.0f, 1.0f);
+
+                }
                 if (grid[x, y].hasDoor)
-                    Gizmos.color = Color.yellow;
+                    Gizmos.color = new Color(1.0f, 1.0f, 0.0f, opacity);  // Yellow with 0.7 opacity
                 if (grid[x, y].hasWall)
-                    Gizmos.color = Color.red;
+                {
+                    Gizmos.color = new Color(0, 0, 0, opacity); // Black with specified opacity
+                }
                 if (grid[x, y].hasFire)
-                    Gizmos.color = Color.magenta;
+                    Gizmos.color = new Color(1.0f, 0.0f, 1.0f, opacity);  // Magenta with 0.7 opacity
 
+                // If visited, override with full opacity
+                if (grid[x, y].isVisited)
+                    Gizmos.color = new Color(Gizmos.color.r, Gizmos.color.g, Gizmos.color.b, 1.0f);  // Keep RGB the same, set A to 1
 
+                Gizmos.DrawCube(cellWorldPosition, new Vector3(cellSize, 0.01f, cellSize));
+            }
+        }
 
+        // Drawing an arrow to indicate the agent's facing direction
+        Vector2Int agentGridPosition = WorldToGrid(agent.transform.position);
+        Vector3 agentPosition = new Vector3(agentGridPosition.x * cellSize + gridOrigin.x - offset, gridOrigin.y - 1f, agentGridPosition.y * cellSize + gridOrigin.z);
+        Vector3 agentForward = agent.transform.forward;
+        float arrowLength = 1f;
+        float arrowHeadSize = 2.5f;
 
+        // Calculate the positions of the arrow
+        Vector3 arrowTail = agentPosition;
+        Vector3 arrowHead = agentPosition + agentForward * arrowLength;
+        Vector3 arrowLeft = arrowHead - (agentForward + agent.transform.right).normalized * arrowHeadSize;
+        Vector3 arrowRight = arrowHead - (agentForward - agent.transform.right).normalized * arrowHeadSize;
+
+        // Drawing the main shaft of the arrow with a "cylinder" to make it thicker
+        Gizmos.color = Color.cyan;
+
+        // Drawing a series of parallel lines to simulate a thicker line for the arrow shaft
+        float thickness = 0.1f; // Adjust the thickness value as needed
+        for (float i = -thickness; i <= thickness; i += 0.02f)
+        {
+            Gizmos.DrawLine(arrowTail + agent.transform.right * i, arrowHead + agent.transform.right * i);
+        }
+
+        // Drawing the head of the arrow with lines
+        Gizmos.DrawLine(arrowHead, arrowLeft);
+        Gizmos.DrawLine(arrowHead, arrowRight);
+
+        // Drawing spheres at the ends to simulate thickness at the ends of the lines forming the arrowhead
+        Gizmos.DrawSphere(arrowLeft, thickness);
+        Gizmos.DrawSphere(arrowRight, thickness);
+        // Get the 3x3 grid in front of the agent
+        Vector2Int[] frontGrids = GetFrontGrid(agentGridPosition, 5);
+
+        foreach (var gridPosition in frontGrids)
+        {
+            if (IsValidGridPosition(gridPosition))
+            {
+                // Set a default semi-transparent color for the front grid cells
+                Gizmos.color = new Color(0.0f, 1.0f, 0.0f, 0.35f); // Semi-transparent green
+
+                Vector3 cellWorldPosition = new Vector3(gridOrigin.x + gridPosition.x * cellSize - offset, gridOrigin.y - 1f, gridOrigin.z + gridPosition.y * cellSize);
                 Gizmos.DrawCube(cellWorldPosition, new Vector3(cellSize, 0.01f, cellSize));
             }
         }
     }
 
+    Vector2Int[] GetFrontGrid(Vector2Int agentGridPosition, int gridSize)
+    {
+        // Getting agent's forward direction in grid coordinates
+        Vector2Int agentForwardGrid = new Vector2Int(Mathf.RoundToInt(agent.transform.forward.x), Mathf.RoundToInt(agent.transform.forward.z));
 
+        // The middle cell of the grid (not necessarily in the center, depending on the forward direction)
+        Vector2Int middleCell = agentGridPosition + agentForwardGrid * (gridSize / 2);
+
+        // Getting the other cells in the grid
+        Vector2Int[] frontGrids = new Vector2Int[gridSize * gridSize];
+        int index = 0;
+        int halfGridSize = gridSize / 2;
+        for (int i = -halfGridSize; i <= halfGridSize; i++)
+        {
+            for (int j = -halfGridSize; j <= halfGridSize; j++)
+            {
+                frontGrids[index++] = new Vector2Int(middleCell.x + i, middleCell.y + j);
+            }
+        }
+
+        return frontGrids;
+    }
+
+
+    bool IsValidGridPosition(Vector2Int position)
+    {
+        return position.x >= 0 && position.y >= 0 && position.x < grid.GetLength(0) && position.y < grid.GetLength(1);
+    }
 }

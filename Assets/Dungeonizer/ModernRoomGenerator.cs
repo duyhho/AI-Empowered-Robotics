@@ -674,7 +674,6 @@ public class ModernRoomGenerator : MonoBehaviour
         roomManager = GetComponent<RoomManager>();
         gridManager = GetComponent<GridManager>();
 
-        gridManager.ResetGrid();
         Dungeon dungeon = new Dungeon();
 
         dungeon.min_size = minRoomSize;
@@ -1161,6 +1160,7 @@ public class ModernRoomGenerator : MonoBehaviour
             }
 
         }
+        gridManager.ResetGrid();
 
 
 
@@ -1173,6 +1173,7 @@ public class ModernRoomGenerator : MonoBehaviour
         {
             ClearOldDungeon();
             Generate();
+
         }
     }
 }
