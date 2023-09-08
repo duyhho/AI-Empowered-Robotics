@@ -33,8 +33,11 @@ public class DungeonAgentFire : Agent
     Renderer m_GoalRenderer;
     public GridManager gridManager;
     Vector2Int lastGridPosition;
-    public float downAngle = 20f;
+    public float upAngle = 15f;
+    public float downAngle = 15f;
     public float sideAngle = 25f; // angle for the side rays
+    public float rayDistance = 15.0f; // Change as needed
+
     public override void Initialize()
     {
         // Debug.Log("Init");
@@ -97,7 +100,6 @@ public class DungeonAgentFire : Agent
         rayDirectionDownRight, rayDirectionLeft, rayDirectionRight
     };
         RaycastHit hitInfo;
-        float rayDistance = 10.0f; // Change as needed
 
         foreach (var dir in rayDirections)
         {
@@ -114,6 +116,7 @@ public class DungeonAgentFire : Agent
                 }
                 else if (hitInfo.collider.gameObject.CompareTag("door_switch"))
                 {
+                    Debug.Log("Raycast hit door!");
                     gridManager.SetDoor(hitInfo.point);
                 }
                 else if (hitInfo.collider.gameObject.CompareTag("symbol_O_Goal") || hitInfo.collider.gameObject.CompareTag("fire"))
@@ -139,8 +142,6 @@ public class DungeonAgentFire : Agent
         // To create a downward ray, we first create it in world space, then apply the agent's rotation
         Vector3 rayDirectionDown = agentRotation * (Quaternion.Euler(downAngle, 0, 0) * Vector3.forward);
 
-
-        float rayDistance = 10.0f; // Change as needed
         // Define directions for diverging rays
         Vector3 rayDirectionDownLeft = Quaternion.Euler(0, -sideAngle, 0) * rayDirectionDown;
         Vector3 rayDirectionDownRight = Quaternion.Euler(0, sideAngle, 0) * rayDirectionDown;
@@ -297,6 +298,7 @@ public class DungeonAgentFire : Agent
     private IEnumerator DelayedEndEpisode()
     {
         yield return new WaitForSeconds(0.6f); // Wait for 1 second
+        gridManager.ResetGrid();
         EndEpisode();
     }
 

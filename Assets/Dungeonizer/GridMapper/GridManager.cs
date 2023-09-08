@@ -168,8 +168,6 @@ public class GridManager : MonoBehaviour
 
     public void ResetGrid()
     {
-        Debug.Log("grid:" + grid);
-        if (grid == null) return;
         // Calculating the new environment size based on the expansions
         environmentSize = new Vector2(150, 150);
         // Create and initialize a new grid with the new dimensions
@@ -188,40 +186,46 @@ public class GridManager : MonoBehaviour
     }
     void OnDrawGizmos()
     {
+        if (grid == null)
+        {
+            ResetGrid();
+            Debug.Log("grid:" + grid.GetLength(0));
 
-        if (grid == null) return;
+        };
         float offset = 150f;
+        float opacity = 0.5f;
         for (int x = 0; x < grid.GetLength(0); x++)
         {
             for (int y = 0; y < grid.GetLength(1); y++)
             {
                 Vector3 cellWorldPosition = new Vector3(gridOrigin.x + x * cellSize - offset, gridOrigin.y - 1f, gridOrigin.z + y * cellSize);
 
-                // Default color (not recognized by raycast or visit)
-                Gizmos.color = new Color(0.75f, 0.75f, 0.75f, 1.0f);
 
-                // Raycast hit but not visited
-                float opacity = 0.5f;
+
+                // None of the above conditions were true, so set the color to white
+                Gizmos.color = Color.white;
+                // Gizmos.color = new Color(0.53f, 0.81f, 0.98f, opacity);
                 if (grid[x, y].hasGround)
                 {
-                    Gizmos.color = new Color(0.53f, 0.81f, 0.98f, opacity); // Blue with 0.7 opacity
-                    // If visited, override with full opacity
+                    Gizmos.color = new Color(0.53f, 0.81f, 0.98f, opacity);
                     if (grid[x, y].isVisited)
                         Gizmos.color = new Color(0.0f, 0.0f, 1.0f);
-
                 }
                 if (grid[x, y].hasDoor)
-                    Gizmos.color = new Color(1.0f, 1.0f, 0.0f, opacity);  // Yellow with 0.7 opacity
+                    Gizmos.color = new Color(1.0f, 1.0f, 0.0f, opacity);
                 if (grid[x, y].hasWall)
-                {
-                    Gizmos.color = new Color(0, 0, 0, opacity); // Black with specified opacity
-                }
+                    Gizmos.color = new Color(0, 0, 0, opacity);
                 if (grid[x, y].hasFire)
-                    Gizmos.color = new Color(1.0f, 0.0f, 1.0f, opacity);  // Magenta with 0.7 opacity
+                    Gizmos.color = new Color(1.0f, 0.0f, 1.0f, opacity);
+
+
+
+
 
                 // If visited, override with full opacity
-                if (grid[x, y].isVisited)
-                    Gizmos.color = new Color(Gizmos.color.r, Gizmos.color.g, Gizmos.color.b, 1.0f);  // Keep RGB the same, set A to 1
+                if (grid[x, y].isVisited) { }
+                Gizmos.color = new Color(Gizmos.color.r, Gizmos.color.g, Gizmos.color.b, 1.0f);
+
 
                 Gizmos.DrawCube(cellWorldPosition, new Vector3(cellSize, 0.01f, cellSize));
             }

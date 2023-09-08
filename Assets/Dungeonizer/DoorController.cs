@@ -22,7 +22,7 @@ public class DoorController : MonoBehaviour
 
     private void OnMouseDown()
     {
-        ToggleDoor();
+        // ToggleDoor();
     }
 
     public void ToggleDoor()
