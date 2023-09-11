@@ -118,6 +118,7 @@ public class ModernRoomGenerator : MonoBehaviour
     public GameObject floorPrefab;
     public GameObject wallPrefab;
     public GameObject doorPrefab;
+    public GameObject sofaPrefab;
     //public GameObject doorCorners;
     public GameObject corridorFloorPrefab;
     public GameObject corridorWallPrefab;
@@ -162,6 +163,15 @@ public class ModernRoomGenerator : MonoBehaviour
     }
     [Tooltip("Enable Door Generation")]
     public DoorGenerationOption generateDoor = DoorGenerationOption.AllDoors;
+
+    public enum SofaGenerationOption
+    {
+        NoDoor,
+        AllDoors,
+        RandomDoors
+    }
+    [Tooltip("Enable Door Generation")]
+    public SofaGenerationOption generateSofa = SofaGenerationOption.AllDoors;
 
     class Dungeon
     {
@@ -1160,6 +1170,93 @@ public class ModernRoomGenerator : MonoBehaviour
             }
 
         }
+
+        // Sofa
+
+        if (sofaPrefab && generateSofa != SofaGenerationOption.NoDoor)
+        {
+            for (int i = 0; i < spawnedObjectLocations.Count; i++)
+            {
+                if (spawnedObjectLocations[i].asDoor > 0)
+                {
+                    // Handle Door Generation Option:
+                    if (generateSofa == SofaGenerationOption.RandomDoors && Random.Range(0f, 1f) > 0.5f)
+                    {
+                        continue; // Skip to next iteration.
+                    }
+                    GameObject newObject;
+                    SpawnList spawnLocation = spawnedObjectLocations[i];
+
+                    // Debug.Log("Door location: " + spawnLocation.x + ", " + spawnLocation.y + ", direction: " + spawnLocation.asDoor);
+                    GameObject sofaPrefabToUse = sofaPrefab;
+                    Room room = spawnLocation.room;
+                    // Debug.Log("room: " + room);
+                    // Debug.Log("spawnLocation.room:" + (spawnLocation.room == null));
+                    if (room != null)
+                    {
+                        foreach (CustomRoom customroom in customRooms)
+                        {
+                            // Debug.Log("customRoomID: " + customroom.roomId + " RoomID: " + room.room_id);
+
+                            if (customroom.roomId == room.room_id)
+                            {
+                                // Debug.Log("using " + customroom.doorPrefab);
+                                sofaPrefabToUse = customroom.sofaPrefab;
+                                break;
+                            }
+                        }
+                    }
+
+                    float offsetX = 0f;
+                    float offsetZ = 0f;
+                    float halfDoorWidth = sofaPrefabToUse.transform.localScale.x / 2f - 0.4f; // assuming your door's scale in the prefab is set correctly
+
+
+
+                    switch (spawnLocation.asDoor)
+                    {
+                        case 1:
+                            offsetX = -halfDoorWidth;
+                            break;
+                        case 2:
+                            offsetZ = -halfDoorWidth;
+                            break;
+                        case 3:
+                            offsetX = halfDoorWidth;
+                            break;
+                        case 4:
+                            offsetZ = halfDoorWidth;
+                            break;
+                    }
+
+                    if (!makeIt3d)
+                    {
+                        newObject = GameObject.Instantiate(sofaPrefabToUse, new Vector3((spawnLocation.x + offsetX) * tileScaling, spawnLocation.y * tileScaling, 0), Quaternion.identity) as GameObject;
+                    }
+                    else
+                    {
+                        newObject = GameObject.Instantiate(sofaPrefabToUse, new Vector3((spawnLocation.x * tileScaling) + offsetX, 0 + parentOffsetHeight, (spawnLocation.y * tileScaling) + offsetZ), Quaternion.identity) as GameObject;
+                    }
+
+                    DoorController doorController = newObject.GetComponent<DoorController>();
+                    doorController.doorOrientation = spawnLocation.asDoor;
+
+                    if (!makeIt3d)
+                    {
+                        newObject.transform.Rotate(Vector3.forward * (-90 * (spawnedObjectLocations[i].asDoor - 1)));
+                    }
+                    else
+                    {
+                        newObject.transform.Rotate(Vector3.up * (-90 * (spawnedObjectLocations[i].asDoor - 1)));
+                    }
+
+                    newObject.transform.parent = transform;
+                    spawnedObjectLocations[i].spawnedObject = newObject;
+                }
+            }
+
+        }
+
         gridManager.ResetGrid();
 
 

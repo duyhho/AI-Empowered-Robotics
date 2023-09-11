@@ -54,6 +54,7 @@ public class CustomRoom {
 	public GameObject floorPrefab;
 	public GameObject wallPrefab;
 	public GameObject doorPrefab;
+	public GameObject sofaPrefab;
 	public GameObject cornerPrefab;
 }
 
@@ -93,6 +94,7 @@ public class Dungeonizer : MonoBehaviour {
 	public GameObject floorPrefab;
 	public GameObject wallPrefab;
 	public GameObject doorPrefab;
+	public GameObject sofaPrefab;
 	//public GameObject doorCorners;
 	public GameObject corridorFloorPrefab;
 	public GameObject corridorWallPrefab;
@@ -868,6 +870,46 @@ public class Dungeonizer : MonoBehaviour {
 				}
 			}
 		}
+
+		// Sofa
+		if (sofaPrefab) {
+			for (int i = 0; i < spawnedObjectLocations.Count; i++) {
+				if (spawnedObjectLocations[i].asDoor > 0){
+					GameObject newObject;
+					SpawnList spawnLocation = spawnedObjectLocations[i];
+
+					GameObject sofaPrefabToUse = sofaPrefab;
+					Room room = spawnLocation.room;
+					if(room != null){
+						foreach(CustomRoom customroom in customRooms){
+							if(customroom.roomId == room.room_id){
+								sofaPrefabToUse = customroom.sofaPrefab;
+								break;
+							}
+						}
+					}
+
+					if (!makeIt3d){
+						newObject = GameObject.Instantiate(sofaPrefabToUse,new Vector3(spawnLocation.x * tileScaling ,spawnLocation.y * tileScaling,0),Quaternion.identity) as GameObject;
+					}
+					else {
+						newObject = GameObject.Instantiate(sofaPrefabToUse,new Vector3(spawnLocation.x * tileScaling ,0,spawnLocation.y * tileScaling),Quaternion.identity) as GameObject;
+					}
+
+					if(!makeIt3d){
+						newObject.transform.Rotate(Vector3.forward  * (-90 * ( spawnedObjectLocations[i].asDoor - 1)));
+					}
+					else{
+						newObject.transform.Rotate(Vector3.up  * (-90 * ( spawnedObjectLocations[i].asDoor - 1)));
+					}
+
+					newObject.transform.parent = transform;
+					spawnedObjectLocations[i].spawnedObject = newObject;
+
+				}
+			}
+		}
+		// End Sofa
 
 	}
 
