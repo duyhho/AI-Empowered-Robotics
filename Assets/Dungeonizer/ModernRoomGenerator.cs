@@ -691,6 +691,7 @@ public class ModernRoomGenerator : MonoBehaviour
         roomManager.tileScaling = tileScaling;
         roomManager.GenerateCollidersForAllRooms(tileScaling);
         roomManager.GenerateCollidersForAllCorridors(tileScaling);
+        // gridManager.parentOffsetHeight = parentOffsetHeight;
 
         //after this line, modernroomcreator will instantiate objects in their calculated locations.		
         foreach (MapTile mapTile in Dungeon.map)

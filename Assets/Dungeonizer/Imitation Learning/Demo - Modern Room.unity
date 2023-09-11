@@ -1673,6 +1673,8 @@ MonoBehaviour:
   environmentSize: {x: 100, y: 100}
   resizeBuffer: 10
   gridExpansionAmount: 50
+  drawGizmos: 0
+  parentOffsetHeight: 0
 --- !u!1 &60996605
 GameObject:
   m_ObjectHideFlags: 0
@@ -53571,7 +53573,7 @@ MonoBehaviour:
   cornerPrefab: {fileID: 1491277895086026, guid: ed84cf8d98cc63142a864b99a78eecc2,
     type: 3}
   cornerRotation: 0
-  maximumRoomCount: 5
+  maximumRoomCount: 3
   minimumRoomMargin: 0
   roomMargin: 0
   corridorWidth: 3
@@ -53657,6 +53659,8 @@ MonoBehaviour:
   environmentSize: {x: 150, y: 150}
   resizeBuffer: 10
   gridExpansionAmount: 50
+  drawGizmos: 1
+  parentOffsetHeight: 0
 --- !u!1 &1267453977
 GameObject:
   m_ObjectHideFlags: 0
@@ -88255,7 +88259,7 @@ MonoBehaviour:
   area: {fileID: 1432695672}
   symbolOGoal: {fileID: 1986349607}
   modernRoomGenerator: {fileID: 1262109783}
-  useVectorObs: 0
+  useVectorObs: 1
   gridManager: {fileID: 1262109784}
   upAngle: 15
   downAngle: 7
@@ -88298,13 +88302,13 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3105192173394898768}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f2902496c0120472b90269f94a0aec7e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   Record: 1
-  DemonstrationName: DynamicFireAgent
+  DemonstrationName: FireAgentGrid
   DemonstrationDirectory: Demos
 --- !u!114 &3105192173394898774
 MonoBehaviour:
@@ -88319,7 +88323,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_BrainParameters:
-    VectorObservationSize: 0
+    VectorObservationSize: 5
     NumStackedVectorObservations: 1
     VectorActionSize: 05000000
     VectorActionDescriptions: []
@@ -88327,7 +88331,7 @@ MonoBehaviour:
   m_Model: {fileID: 0}
   m_InferenceDevice: 0
   m_BehaviorType: 1
-  m_BehaviorName: DynamicHallwayFire
+  m_BehaviorName: DynamicHallwayFireWithCuriosity
   TeamId: 0
   m_UseChildSensors: 1
 --- !u!114 &3105192173394898775

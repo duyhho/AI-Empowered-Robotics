@@ -42,7 +42,13 @@ public class DoorButton : MonoBehaviour
     {
         if (other.gameObject.CompareTag("agent"))
         {
+            if (door.doorIsOpen == false)
+            {
+                Debug.Log("Door Reward!");
+                other.gameObject.transform.GetComponent<DungeonAgentFire>().AddReward(2f);
+            }
             door.doorIsOpen = true; // Instead of changing the button's state, change the door's state
+
         }
     }
 

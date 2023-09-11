@@ -21,6 +21,8 @@ public class GridManager : MonoBehaviour
     GridCell[,] grid;
     float lastResizeTime = 0f;
     float resizeCooldown = 1f; // Set a cooldown time of 1 second
+    public bool drawGizmos = false;
+    public float parentOffsetHeight = 0f;
     void Start()
     {
         Vector3 agentInitialPos = agent.transform.position;
@@ -119,10 +121,12 @@ public class GridManager : MonoBehaviour
         Vector2Int gridPosition = WorldToGrid(worldPosition);
         if (grid[gridPosition.x, gridPosition.y].isVisited != state)
         {
+            agent.GetComponent<DungeonAgentFire>().AddReward(0.1f);
             grid[gridPosition.x, gridPosition.y].isVisited = state;
             // Optionally: Trigger any events or notifications about the state change
         }
     }
+
 
     public void SetWall(Vector3 worldPosition, bool state = true)
     {
@@ -186,6 +190,8 @@ public class GridManager : MonoBehaviour
     }
     void OnDrawGizmos()
     {
+        if (!drawGizmos)
+            return;
         if (grid == null)
         {
             ResetGrid();
@@ -198,9 +204,7 @@ public class GridManager : MonoBehaviour
         {
             for (int y = 0; y < grid.GetLength(1); y++)
             {
-                Vector3 cellWorldPosition = new Vector3(gridOrigin.x + x * cellSize - offset, gridOrigin.y - 1f, gridOrigin.z + y * cellSize);
-
-
+                Vector3 cellWorldPosition = new Vector3(gridOrigin.x + x * cellSize - offset, gridOrigin.y - 1f + parentOffsetHeight, gridOrigin.z + y * cellSize);
 
                 // None of the above conditions were true, so set the color to white
                 Gizmos.color = Color.white;
@@ -233,7 +237,7 @@ public class GridManager : MonoBehaviour
 
         // Drawing an arrow to indicate the agent's facing direction
         Vector2Int agentGridPosition = WorldToGrid(agent.transform.position);
-        Vector3 agentPosition = new Vector3(agentGridPosition.x * cellSize + gridOrigin.x - offset, gridOrigin.y - 1f, agentGridPosition.y * cellSize + gridOrigin.z);
+        Vector3 agentPosition = new Vector3(agentGridPosition.x * cellSize + gridOrigin.x - offset, gridOrigin.y - 1f + parentOffsetHeight, agentGridPosition.y * cellSize + gridOrigin.z);
         Vector3 agentForward = agent.transform.forward;
         float arrowLength = 1f;
         float arrowHeadSize = 2.5f;
@@ -262,7 +266,7 @@ public class GridManager : MonoBehaviour
         Gizmos.DrawSphere(arrowLeft, thickness);
         Gizmos.DrawSphere(arrowRight, thickness);
         // Get the 3x3 grid in front of the agent
-        Vector2Int[] frontGrids = GetFrontGrid(agentGridPosition, 5);
+        Vector2Int[] frontGrids = GetFrontGrid(agentGridPosition, 3);
 
         foreach (var gridPosition in frontGrids)
         {
@@ -271,13 +275,13 @@ public class GridManager : MonoBehaviour
                 // Set a default semi-transparent color for the front grid cells
                 Gizmos.color = new Color(0.0f, 1.0f, 0.0f, 0.35f); // Semi-transparent green
 
-                Vector3 cellWorldPosition = new Vector3(gridOrigin.x + gridPosition.x * cellSize - offset, gridOrigin.y - 1f, gridOrigin.z + gridPosition.y * cellSize);
+                Vector3 cellWorldPosition = new Vector3(gridOrigin.x + gridPosition.x * cellSize - offset, gridOrigin.y - 1f + parentOffsetHeight, gridOrigin.z + gridPosition.y * cellSize);
                 Gizmos.DrawCube(cellWorldPosition, new Vector3(cellSize, 0.01f, cellSize));
             }
         }
     }
 
-    Vector2Int[] GetFrontGrid(Vector2Int agentGridPosition, int gridSize)
+    public Vector2Int[] GetFrontGrid(Vector2Int agentGridPosition, int gridSize)
     {
         // Getting agent's forward direction in grid coordinates
         Vector2Int agentForwardGrid = new Vector2Int(Mathf.RoundToInt(agent.transform.forward.x), Mathf.RoundToInt(agent.transform.forward.z));
@@ -304,5 +308,18 @@ public class GridManager : MonoBehaviour
     bool IsValidGridPosition(Vector2Int position)
     {
         return position.x >= 0 && position.y >= 0 && position.x < grid.GetLength(0) && position.y < grid.GetLength(1);
+    }
+    public GridCell GetGridCell(int x, int y)
+    {
+        Vector2Int gridPosition = new Vector2Int(x, y);
+        if (IsValidGridPosition(gridPosition))
+        {
+            return grid[x, y];
+        }
+        else
+        {
+            // If the coordinates are out of bounds, return null or throw an exception
+            return null;
+        }
     }
 }

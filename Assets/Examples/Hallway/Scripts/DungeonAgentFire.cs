@@ -69,10 +69,38 @@ public class DungeonAgentFire : Agent
     public override void CollectObservations(VectorSensor sensor)
     {
         // Debug.Log("Collecting Observations");
-        RaycastUpdateGrid();
+        RaycastUpdateGrid(); //this doesn't collect any observations ,just updating grid cell status;
         if (useVectorObs)
         {
+            // Agent's current position
+            Vector2Int agentGridPosition = gridManager.WorldToGrid(transform.position);
+
+            // Getting the grid in front of the agent
+            Vector2Int[] frontGrids = gridManager.GetFrontGrid(agentGridPosition, 3);
+            // bool hasGround = false;
+            bool hasWall = false;
+            bool hasDoor = false;
+            bool hasFire = false;
+            foreach (var gridPosition in frontGrids)
+            {
+                // Get the properties of the cell at the current grid position
+                var cell = gridManager.GetGridCell(gridPosition.x, gridPosition.y);
+                // Update the variables if the current cell contains the respective properties
+                if (cell != null)
+                {
+                    // if (!hasGround) hasGround = cell.hasGround;
+                    if (!hasWall) hasWall = cell.hasWall;
+                    if (!hasDoor) hasDoor = cell.hasDoor;
+                    if (!hasFire) hasFire = cell.hasFire;
+                }
+            }
+            // sensor.AddObservation(hasGround);
+            sensor.AddObservation(hasWall);
+            sensor.AddObservation(hasDoor);
+            sensor.AddObservation(hasFire);
             sensor.AddObservation(StepCount / (float)MaxStep);
+            // Logging the observations to Unity console
+            Debug.Log($"Observations: hasWall - {hasWall}, hasDoor - {hasDoor}, hasFire - {hasFire}");
         }
     }
     void RaycastUpdateGrid()
@@ -272,7 +300,7 @@ public class DungeonAgentFire : Agent
         if (col.gameObject.CompareTag("wall"))
         {
             Debug.Log("Hit wall!!");
-
+            AddReward(-0.1f);
             gridManager.SetWall(transform.position);
             gridManager.SetVisited(transform.position);
 
@@ -290,9 +318,19 @@ public class DungeonAgentFire : Agent
                 // Debug.Log("Set ground!!");
 
                 gridManager.SetGround(transform.position);
+                /*Reward is set in Grid Manager.cs script for exploring new areas */
                 gridManager.SetVisited(transform.position);
                 lastGridPosition = currentGridPosition;
             }
+        }
+        if (col.gameObject.CompareTag("wall"))
+        {
+            Debug.Log("Hit wall!!");
+            AddReward(-0.1f);
+            gridManager.SetWall(transform.position);
+            gridManager.SetVisited(transform.position);
+
+
         }
     }
     private IEnumerator DelayedEndEpisode()
@@ -306,8 +344,11 @@ public class DungeonAgentFire : Agent
     {
         if (other.gameObject.CompareTag("door_switch"))
         {
-            Debug.Log("Hit door! Reward!");
-            SetReward(1f);
+            // Debug.Log("Hit door! Reward!");
+
+            /*Reward is set in Door Button.cs script */
+            // AddReward(1f);
+
             // EndEpisode();
             gridManager.SetDoor(transform.position);
             gridManager.SetVisited(transform.position);
@@ -317,7 +358,7 @@ public class DungeonAgentFire : Agent
         Debug.Log(other.gameObject.tag);
         if (other.gameObject.CompareTag("symbol_O_Goal") || other.gameObject.CompareTag("fire"))
         {
-            SetReward(2f);
+            AddReward(2f);
             StartCoroutine(GoalScoredSwapGroundMaterial(m_HallwaySettings.goalScoredMaterial, 0.5f));
             StartCoroutine(SwapGoalMaterial(m_HallwaySettings.waterMaterial, 0.5f));
 
