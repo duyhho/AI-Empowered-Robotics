@@ -1,7 +1,16 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
+public class GridCell
+{
+    public int x = 0;
+    public int y = 0;
+    public bool isVisited = false;
+    public bool hasWall = false;
+    public bool hasDoor = false;
+    public bool hasGround = false;
+    public bool hasFire = false;
+}
 public class GridManager : MonoBehaviour
 {
     public GameObject agent;
@@ -10,14 +19,7 @@ public class GridManager : MonoBehaviour
     public Vector2 environmentSize = new Vector2(150, 150); // example 20x20 meters environment
     public float resizeBuffer = 10f; // The buffer zone near the edges of the grid
     public int gridExpansionAmount = 50; // The amount to expand the grid by
-    public class GridCell
-    {
-        public bool isVisited = false;
-        public bool hasWall = false;
-        public bool hasDoor = false;
-        public bool hasGround = false;
-        public bool hasFire = false;
-    }
+
     GridCell[,] grid;
     float lastResizeTime = 0f;
     float resizeCooldown = 1f; // Set a cooldown time of 1 second
@@ -33,7 +35,12 @@ public class GridManager : MonoBehaviour
         {
             for (int j = 0; j < grid.GetLength(1); j++)
             {
-                grid[i, j] = new GridCell();
+                grid[i, j] = new GridCell
+                {
+                    x = i,
+                    y = j
+                };
+
             }
         }
     }
@@ -83,7 +90,11 @@ public class GridManager : MonoBehaviour
             {
                 for (int j = 0; j < grid.GetLength(1); j++)
                 {
-                    grid[i, j] = new GridCell();
+                    grid[i, j] = new GridCell
+                    {
+                        x = i,
+                        y = j
+                    };
 
                     // Calculate the corresponding index in the old grid
                     int oldGridX = i - expandLeft;
@@ -114,18 +125,43 @@ public class GridManager : MonoBehaviour
 
         return new Vector2Int(x, y);
     }
+    public Vector3 GridToWorld(Vector2Int gridPosition)
+    {
+        float x = gridPosition.x * cellSize + gridOrigin.x + cellSize / 2.0f;
+        float z = gridPosition.y * cellSize + gridOrigin.z + cellSize / 2.0f;
+
+        // Assuming the y-coordinate (height) is 0; adjust if necessary
+        return new Vector3(x, 0, z);
+    }
 
 
     public void SetVisited(Vector3 worldPosition, bool state = true)
     {
         Vector2Int gridPosition = WorldToGrid(worldPosition);
+        if (!IsValidGridPosition(gridPosition))
+        {
+            return;
+        }
+
+        var agentComponent = agent.GetComponent<DungeonAgentFire>();
+
         if (grid[gridPosition.x, gridPosition.y].isVisited != state)
         {
-            agent.GetComponent<DungeonAgentFire>().AddReward(0.1f);
             grid[gridPosition.x, gridPosition.y].isVisited = state;
-            // Optionally: Trigger any events or notifications about the state change
+
+            // Reward or penalty based on the new state
+            if (state)
+            {
+                agentComponent.AddReward(0.1f); // Reward for visiting a new cell
+            }
+        }
+        else
+        {
+            agentComponent.AddReward(-0.01f); // Penalty for redundant action (revisiting or unvisiting)
         }
     }
+
+
 
 
     public void SetWall(Vector3 worldPosition, bool state = true)
@@ -184,7 +220,11 @@ public class GridManager : MonoBehaviour
         {
             for (int j = 0; j < grid.GetLength(1); j++)
             {
-                grid[i, j] = new GridCell();
+                grid[i, j] = new GridCell
+                {
+                    x = i,
+                    y = j
+                };
             }
         }
     }

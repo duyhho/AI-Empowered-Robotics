@@ -76,11 +76,13 @@ public class DungeonAgentFire : Agent
             Vector2Int agentGridPosition = gridManager.WorldToGrid(transform.position);
 
             // Getting the grid in front of the agent
-            Vector2Int[] frontGrids = gridManager.GetFrontGrid(agentGridPosition, 3);
+            Vector2Int[] frontGrids = gridManager.GetFrontGrid(agentGridPosition, 5);
             // bool hasGround = false;
             bool hasWall = false;
             bool hasDoor = false;
             bool hasFire = false;
+
+            Vector2Int doorGridPosition = new Vector2Int(0, 0);
             foreach (var gridPosition in frontGrids)
             {
                 // Get the properties of the cell at the current grid position
@@ -90,13 +92,33 @@ public class DungeonAgentFire : Agent
                 {
                     // if (!hasGround) hasGround = cell.hasGround;
                     if (!hasWall) hasWall = cell.hasWall;
-                    if (!hasDoor) hasDoor = cell.hasDoor;
+                    if (!hasDoor)
+                    {
+                        hasDoor = cell.hasDoor;
+                        doorGridPosition = gridPosition;
+                    }
                     if (!hasFire) hasFire = cell.hasFire;
                 }
             }
             // sensor.AddObservation(hasGround);
             sensor.AddObservation(hasWall);
             sensor.AddObservation(hasDoor);
+            if (hasDoor)
+            {
+                // Compute direction to the nearest door
+                Vector3 agentWorldPosition = transform.position;
+                Vector3 doorWorldPosition = gridManager.GridToWorld(doorGridPosition);  // assuming GridToWorld converts a grid position to a world position
+                Vector3 directionToDoor = doorWorldPosition - agentWorldPosition;
+                Vector2 directionToDoor2D = new Vector2(directionToDoor.x, directionToDoor.z);
+                sensor.AddObservation(directionToDoor2D.normalized);
+                Debug.Log("hasDoor-true: direction:" + directionToDoor2D.normalized);
+            }
+            else
+            {
+                // If no door is found, add a zero vector as the observation
+                sensor.AddObservation(Vector2.zero);
+            }
+
             sensor.AddObservation(hasFire);
             sensor.AddObservation(StepCount / (float)MaxStep);
             // Logging the observations to Unity console
@@ -284,8 +306,53 @@ public class DungeonAgentFire : Agent
         }
 
         MoveAgent(vectorAction);
+
+        AddReward(CalculateRewardForDoor());
+
     }
 
+    // A stub function for calculating a reward based on the direction to a door
+    private float CalculateRewardForDoor()
+    {
+        Vector2Int agentGridPosition = gridManager.WorldToGrid(transform.position);
+        Vector2Int[] frontGrids = gridManager.GetFrontGrid(agentGridPosition, 5);
+
+        bool hasWall = false;
+        bool hasDoor = false;
+        bool hasFire = false;
+
+        Vector2Int doorGridPosition = new Vector2Int(0, 0);
+        foreach (var gridPosition in frontGrids)
+        {
+            var cell = gridManager.GetGridCell(gridPosition.x, gridPosition.y);
+            if (cell != null)
+            {
+                if (!hasWall) hasWall = cell.hasWall;
+                if (!hasDoor)
+                {
+                    hasDoor = cell.hasDoor;
+                    doorGridPosition = gridPosition;
+                }
+                if (!hasFire) hasFire = cell.hasFire;
+            }
+        }
+
+        if (hasDoor)
+        {
+
+            Debug.Log("Detected door: Facing towards the door, positive reward granted.");
+            return 0.1f;
+
+        }
+        if (hasFire)
+        {
+
+            Debug.Log("Detected door: Facing towards the door, positive reward granted.");
+            return 0.2f;
+
+        }
+        return -0.1f;
+    }
 
 
     void OnCollisionEnter(Collision col)
