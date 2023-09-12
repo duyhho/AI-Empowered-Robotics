@@ -90,7 +90,7 @@ public class RoomManager : MonoBehaviour
 
         Vector3 corridorCenter = new Vector3(0f, 0f, 0f);
         Vector3 corridorSize = new Vector3(0f, 0f, 0f);
-        float centerOffset = corridor.Width % 2 == 0 ? -0.5f : 0;
+        float centerOffset = -0.5f;
 
         // If horizontal corridor
         if (corridor.StartY == corridor.EndY)
@@ -98,13 +98,13 @@ public class RoomManager : MonoBehaviour
 
             // Debug.Log($"Start X: {corridor.StartX}, Start Y: {corridor.StartY}, End X: {corridor.EndX}, End Y: {corridor.EndY}, Width: {corridor.Width}, Length: {corridor.Length}");
             // Debug.Log("Y Spawn: " + (corridor.StartY + corridor.Width / 2f) * tileScaling);
-            corridorCenter = new Vector3((corridor.StartX + corridor.EndX) / 2f * tileScaling, parentOffsetHeight, (corridor.StartY + corridor.Width / 2f + centerOffset) * tileScaling);
+            corridorCenter = new Vector3(((corridor.StartX + corridor.EndX) / 2f + centerOffset) * tileScaling, parentOffsetHeight, (corridor.StartY + corridor.Width / 2f + centerOffset) * tileScaling);
 
             corridorSize = new Vector3(Mathf.Abs(corridor.EndX - corridor.StartX) * tileScaling, 1, corridor.Width * tileScaling);
         }
         else // Vertical corridor
         {
-            corridorCenter = new Vector3((corridor.StartX + corridor.Width / 2f + centerOffset) * tileScaling, parentOffsetHeight, (corridor.StartY + corridor.EndY) / 2f * tileScaling);
+            corridorCenter = new Vector3((corridor.StartX + corridor.Width / 2f + centerOffset) * tileScaling, parentOffsetHeight, (centerOffset + (corridor.StartY + corridor.EndY) / 2f) * tileScaling);
             corridorSize = new Vector3(corridor.Width * tileScaling, 1, Mathf.Abs(corridor.EndY - corridor.StartY) * tileScaling);
         }
 

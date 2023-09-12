@@ -31,6 +31,11 @@ public class HallwayAgent : Agent
     public override void CollectObservations(VectorSensor sensor)
     {
         // Debug.Log("Collecting Observations");
+        if (sensor == null)
+        {
+            Debug.LogError("Sensor is null.");
+            return;
+        }
         if (useVectorObs)
         {
             sensor.AddObservation(StepCount / (float)MaxStep);

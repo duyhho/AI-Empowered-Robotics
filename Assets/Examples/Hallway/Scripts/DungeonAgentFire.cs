@@ -35,8 +35,9 @@ public class DungeonAgentFire : Agent
     Vector2Int lastGridPosition;
     public float upAngle = 15f;
     public float downAngle = 15f;
-    public float sideAngle = 25f; // angle for the side rays
+    public float sideAngle = 15f; // angle for the side rays
     public float rayDistance = 15.0f; // Change as needed
+    public bool drawGizmos = false;
 
     public override void Initialize()
     {
@@ -69,61 +70,68 @@ public class DungeonAgentFire : Agent
     public override void CollectObservations(VectorSensor sensor)
     {
         // Debug.Log("Collecting Observations");
+        if (sensor == null)
+        {
+            Debug.LogError("Sensor is null.");
+            return;
+        }
+
         RaycastUpdateGrid(); //this doesn't collect any observations ,just updating grid cell status;
         if (useVectorObs)
         {
-            // Agent's current position
-            Vector2Int agentGridPosition = gridManager.WorldToGrid(transform.position);
+            // // Agent's current position
+            // Vector2Int agentGridPosition = gridManager.WorldToGrid(transform.position);
 
-            // Getting the grid in front of the agent
-            Vector2Int[] frontGrids = gridManager.GetFrontGrid(agentGridPosition, 5);
-            // bool hasGround = false;
-            bool hasWall = false;
-            bool hasDoor = false;
-            bool hasFire = false;
+            // // Getting the grid in front of the agent
+            // Vector2Int[] frontGrids = gridManager.GetFrontGrid(agentGridPosition, 5);
+            // // bool hasGround = false;
+            // bool hasWall = false;
+            // bool hasDoor = false;
+            // bool hasFire = false;
 
-            Vector2Int doorGridPosition = new Vector2Int(0, 0);
-            foreach (var gridPosition in frontGrids)
-            {
-                // Get the properties of the cell at the current grid position
-                var cell = gridManager.GetGridCell(gridPosition.x, gridPosition.y);
-                // Update the variables if the current cell contains the respective properties
-                if (cell != null)
-                {
-                    // if (!hasGround) hasGround = cell.hasGround;
-                    if (!hasWall) hasWall = cell.hasWall;
-                    if (!hasDoor)
-                    {
-                        hasDoor = cell.hasDoor;
-                        doorGridPosition = gridPosition;
-                    }
-                    if (!hasFire) hasFire = cell.hasFire;
-                }
-            }
-            // sensor.AddObservation(hasGround);
-            sensor.AddObservation(hasWall);
-            sensor.AddObservation(hasDoor);
-            if (hasDoor)
-            {
-                // Compute direction to the nearest door
-                Vector3 agentWorldPosition = transform.position;
-                Vector3 doorWorldPosition = gridManager.GridToWorld(doorGridPosition);  // assuming GridToWorld converts a grid position to a world position
-                Vector3 directionToDoor = doorWorldPosition - agentWorldPosition;
-                Vector2 directionToDoor2D = new Vector2(directionToDoor.x, directionToDoor.z);
-                sensor.AddObservation(directionToDoor2D.normalized);
-                Debug.Log("hasDoor-true: direction:" + directionToDoor2D.normalized);
-            }
-            else
-            {
-                // If no door is found, add a zero vector as the observation
-                sensor.AddObservation(Vector2.zero);
-            }
+            // Vector2Int doorGridPosition = new Vector2Int(0, 0);
+            // foreach (var gridPosition in frontGrids)
+            // {
+            //     // Get the properties of the cell at the current grid position
+            //     var cell = gridManager.GetGridCell(gridPosition.x, gridPosition.y);
+            //     // Update the variables if the current cell contains the respective properties
+            //     if (cell != null)
+            //     {
+            //         // if (!hasGround) hasGround = cell.hasGround;
+            //         if (!hasWall) hasWall = cell.hasWall;
+            //         if (!hasDoor)
+            //         {
+            //             hasDoor = cell.hasDoor;
+            //             doorGridPosition = gridPosition;
+            //         }
+            //         if (!hasFire) hasFire = cell.hasFire;
+            //     }
+            // }
+            // // sensor.AddObservation(hasGround);
+            // sensor.AddObservation(hasWall);
+            // sensor.AddObservation(hasDoor);
+            // if (hasDoor)
+            // {
+            //     // Compute direction to the nearest door
+            //     Vector3 agentWorldPosition = transform.position;
+            //     Vector3 doorWorldPosition = gridManager.GridToWorld(doorGridPosition);  // assuming GridToWorld converts a grid position to a world position
+            //     Vector3 directionToDoor = doorWorldPosition - agentWorldPosition;
+            //     Vector2 directionToDoor2D = new Vector2(directionToDoor.x, directionToDoor.z);
+            //     sensor.AddObservation(directionToDoor2D.normalized);
+            //     Debug.Log("hasDoor-true: direction:" + directionToDoor2D.normalized);
+            // }
+            // else
+            // {
+            //     // If no door is found, add a zero vector as the observation
+            //     sensor.AddObservation(Vector2.zero);
+            // }
 
-            sensor.AddObservation(hasFire);
+            // sensor.AddObservation(hasFire);
             sensor.AddObservation(StepCount / (float)MaxStep);
             // Logging the observations to Unity console
-            Debug.Log($"Observations: hasWall - {hasWall}, hasDoor - {hasDoor}, hasFire - {hasFire}");
+            // Debug.Log($"Observations: hasWall - {hasWall}, hasDoor - {hasDoor}, hasFire - {hasFire}");
         }
+
     }
     void RaycastUpdateGrid()
     {
@@ -178,7 +186,8 @@ public class DungeonAgentFire : Agent
     }
     void OnDrawGizmos()
     {
-
+        if (!drawGizmos)
+            return;
         // float downAngle = 10f;
         // float sideAngle = 25f; // angle for the side rays
         Vector3 rayOrigin = transform.position;
@@ -307,7 +316,7 @@ public class DungeonAgentFire : Agent
 
         MoveAgent(vectorAction);
 
-        AddReward(CalculateRewardForDoor());
+        // AddReward(CalculateRewardForDoor());
 
     }
 
@@ -351,7 +360,7 @@ public class DungeonAgentFire : Agent
             return 0.2f;
 
         }
-        return -0.1f;
+        return 0f;
     }
 
 
@@ -403,6 +412,8 @@ public class DungeonAgentFire : Agent
     private IEnumerator DelayedEndEpisode()
     {
         yield return new WaitForSeconds(0.6f); // Wait for 1 second
+        modernRoomGenerator.ClearOldDungeon();
+        modernRoomGenerator.Generate();
         gridManager.ResetGrid();
         EndEpisode();
     }
@@ -429,7 +440,7 @@ public class DungeonAgentFire : Agent
             StartCoroutine(GoalScoredSwapGroundMaterial(m_HallwaySettings.goalScoredMaterial, 0.5f));
             StartCoroutine(SwapGoalMaterial(m_HallwaySettings.waterMaterial, 0.5f));
 
-            PlayWaterAndStopFire();
+            // PlayWaterAndStopFire();
             // EndEpisode();
             StartCoroutine(DelayedEndEpisode()); // Use the coroutine here
 
@@ -467,6 +478,7 @@ public class DungeonAgentFire : Agent
     {
         Debug.Log("ON EPISODE BEGIN");
         gridManager.ResetGrid();
+
         // Reset all doors in the scene
         DoorController[] allDoors = area.GetComponentsInChildren<DoorController>();
         foreach (DoorController door in allDoors)
@@ -477,21 +489,40 @@ public class DungeonAgentFire : Agent
         if (symbolOGoal)
         {
             Vector3 randomFirePosition = roomManager.GetRandomGoalPosition();
-            // Debug.Log("RoomManager.GetRandomGoalPosition()" + randomFirePosition);
             symbolOGoal.transform.position = randomFirePosition;
             m_GoalRenderer = symbolOGoal.GetComponent<Renderer>();
             m_GoalMaterial = m_GoalRenderer.material;
 
-            fireParticleSystem = symbolOGoal.transform.Find("CFX4 Fire").GetComponent<ParticleSystem>();
-            // waterParticleSystem = symbolOGoal.transform.Find("CFX2_Big_Splash (No Collision)").GetComponent<ParticleSystem>();
-            fireParticleSystem.Clear();
-            fireParticleSystem.Play();
+            Transform fireTransform = symbolOGoal.transform.Find("CFX4 Fire");
+            if (fireTransform != null)
+            {
+                fireParticleSystem = fireTransform.GetComponent<ParticleSystem>();
+
+                if (fireParticleSystem != null)
+                {
+                    fireParticleSystem.Clear();
+                    fireParticleSystem.Play();
+                }
+                else
+                {
+                    Debug.LogWarning("CFX4 Fire component does not have a ParticleSystem attached.");
+                }
+            }
+            else
+            {
+                Debug.LogWarning("CFX4 Fire object could not be found.");
+            }
         }
+        else
+        {
+            Debug.LogWarning("symbolOGoal is not set.");
+        }
+
         transform.position = roomManager.GetStartPoint() + new Vector3(0f, 0.5f, 0f);
         transform.rotation = Quaternion.Euler(0f, Random.Range(0f, 360f), 0f);
         m_AgentRb.velocity *= 0f;
-
     }
+
     public void PlayWaterAndStopFire()
     {
         Debug.Log("Play Water");

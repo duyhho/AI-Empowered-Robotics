@@ -461,16 +461,48 @@ public class ModernRoomGenerator : MonoBehaviour
                     MapTile currentTile = null;
                     // At the start of your corridor generation
                     // Capture the initial position of pointB as the end of the corridor
+                    int initialPointAX = pointA.x;
+                    int initialPointAY = pointA.y;
                     int initialPointBX = pointB.x;
                     int initialPointBY = pointB.y;
+
+                    // Adjusting the end points of the corridor to be the nearest edges of the two rooms
+                    if (horizontalCorridor)
+                    {
+                        if (roomA.x + roomA.w < roomB.x)
+                        {
+                            initialPointAX = roomA.x + roomA.w; // Right edge of roomA
+                            initialPointBX = roomB.x; // Left edge of roomB
+                        }
+                        else if (roomB.x + roomB.w < roomA.x)
+                        {
+                            initialPointBX = roomB.x + roomB.w; // Right edge of roomB
+                            initialPointAX = roomA.x; // Left edge of roomA
+                        }
+                    }
+                    else
+                    {
+                        if (roomA.y + roomA.h < roomB.y)
+                        {
+                            initialPointAY = roomA.y + roomA.h; // Bottom edge of roomA
+                            initialPointBY = roomB.y; // Top edge of roomB
+                        }
+                        else if (roomB.y + roomB.h < roomA.y)
+                        {
+                            initialPointBY = roomB.y + roomB.h; // Bottom edge of roomB
+                            initialPointAY = roomA.y; // Top edge of roomA
+                        }
+                    }
+
                     Corridor corridor = new Corridor
                     {
-                        StartX = pointA.x,
-                        StartY = pointA.y,
+                        StartX = initialPointAX,
+                        StartY = initialPointAY,
                         Width = corridorWidth,
                         EndX = initialPointBX,
                         EndY = initialPointBY
                     };
+
                     corridor.CalculateLength();
                     corridors.Add(corridor);
                     int centerOffset;
