@@ -112,10 +112,27 @@ public class RoomManager : MonoBehaviour
         BoxCollider corridorCollider = corridorColliderObject.GetComponent<BoxCollider>();
         corridorColliderObject.transform.parent = transform;
 
+        // Adding the tag "corridor" to the collider object
+        corridorColliderObject.tag = "corridor";
+
         if (corridorCollider != null)
         {
-            corridorCollider.size = corridorSize;
+            corridorCollider.size = corridorSize; ;
         }
+
+        // Create an additional trigger collider with the same dimensions but higher
+        GameObject corridorTriggerColliderObject = Instantiate(roomColliderPrefab, corridorCenter + new Vector3(0, 1.0f, 0), Quaternion.identity); // Adjust the y value as necessary
+        corridorTriggerColliderObject.transform.parent = transform;
+
+        BoxCollider corridorTriggerCollider = corridorTriggerColliderObject.GetComponent<BoxCollider>();
+        if (corridorTriggerCollider != null)
+        {
+            corridorTriggerCollider.size = corridorSize + new Vector3(0f, 5f, 0f);
+            corridorTriggerCollider.isTrigger = true;
+        }
+
+        // Adding the tag "corridor" to the trigger collider object
+        corridorTriggerColliderObject.tag = "corridor";
     }
 
     public void GenerateCollidersForAllCorridors(float tileScaling = 1f)
@@ -149,16 +166,18 @@ public class RoomManager : MonoBehaviour
         if (allRooms.Count >= 1)
         {
             Room goalRoom = allRooms[allRooms.Count - 1];
-            Room startRoom = allRooms[0]; // Note: You currently aren't using startRoom.
+            Room startRoom = allRooms[0]; // Note: we currently aren't using startRoom.
 
-            // Generate a random offset within the room's boundaries.
-            float xOffset = UnityEngine.Random.Range(0, goalRoom.w);
-            float zOffset = UnityEngine.Random.Range(0, goalRoom.h);
+            // Generate a random offset within the room's boundaries, ensuring it is away from the walls
+            float margin = tileScaling / 2f;  // Adjusting margin to be half the cell size
+            float xOffset = UnityEngine.Random.Range(margin, goalRoom.w * tileScaling - margin);
+            float zOffset = UnityEngine.Random.Range(margin, goalRoom.h * tileScaling - margin);
 
-            Vector3 endPointPosition = new Vector3((goalRoom.x + xOffset) * tileScaling, 0.5f + parentOffsetHeight, (goalRoom.y + zOffset) * tileScaling);
+            Vector3 endPointPosition = new Vector3((goalRoom.x * tileScaling) + xOffset, 0.1f + parentOffsetHeight, (goalRoom.y * tileScaling) + zOffset);
             return endPointPosition;
         }
         return endPoint;
     }
+
 
 }

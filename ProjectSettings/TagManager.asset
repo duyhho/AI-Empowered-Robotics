@@ -17,6 +17,11 @@ TagManager:
   - symbol_O
   - door
   - fire
+  - pit
+  - switchOff
+  - pyramid
+  - stone
+  - corridor
   layers:
   - Default
   - TransparentFX

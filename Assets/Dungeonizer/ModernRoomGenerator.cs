@@ -126,7 +126,9 @@ public class ModernRoomGenerator : MonoBehaviour
     public bool cornerRotation = false;
 
     public int maximumRoomCount = 10;
-
+    [Header("Room Count Randomization")]
+    public bool randomizeRoomCount = false;
+    public int maxRandomRooms = -1;
     [Tooltip("Min gap between rooms. Also affects corridor lengths ")]
     public int minimumRoomMargin = 0;
 
@@ -212,7 +214,7 @@ public class ModernRoomGenerator : MonoBehaviour
         public void Generate()
         {
             int roomWidth = this.corridorWidth;
-            int room_count = Random.Range(2, this.maximumRoomCount + 1);
+            int room_count = this.maximumRoomCount;
             int min_size = this.min_size;
             int max_size = this.max_size;
             map = new List<MapTile>();
@@ -697,6 +699,13 @@ public class ModernRoomGenerator : MonoBehaviour
                 Destroy(transform.GetChild(i).gameObject);
             }
         }
+        if (randomizeRoomCount)
+        {
+            maximumRoomCount = Random.Range(2, maxRandomRooms + 1); // NOT INCLUDING MAX!
+            Debug.Log("New Room Count: " + maximumRoomCount);
+        }
+        agent.m_Configuration = maximumRoomCount;
+
     }
 
 

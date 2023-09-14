@@ -1,7 +1,9 @@
 using System.Collections;
 using UnityEngine;
 using Unity.MLAgents;
+using Unity.Barracuda;
 using Unity.MLAgents.Sensors;
+
 using System.Collections.Generic;
 public class DungeonAgentFire : Agent
 {
@@ -38,6 +40,17 @@ public class DungeonAgentFire : Agent
     public float sideAngle = 15f; // angle for the side rays
     public float rayDistance = 15.0f; // Change as needed
     public bool drawGizmos = false;
+    // Depending on this value, the wall will have different room counts
+    public int m_Configuration;
+
+    [Header("Model Library")]
+    public NNModel twoRoomBrain;
+
+    public NNModel threeRoomBrain;
+
+    public NNModel fourRoomBrain;
+    public NNModel fiveRoomBrain;
+    public NNModel dynamicRoomBrain;
 
     public override void Initialize()
     {
@@ -375,8 +388,8 @@ public class DungeonAgentFire : Agent
         // }
         if (col.gameObject.CompareTag("wall"))
         {
-            Debug.Log("Hit wall!!");
-            AddReward(-0.1f);
+            // Debug.Log("Hit wall!!");
+            // AddReward(-0.1f);
             gridManager.SetWall(transform.position);
             gridManager.SetVisited(transform.position);
 
@@ -401,8 +414,8 @@ public class DungeonAgentFire : Agent
         }
         if (col.gameObject.CompareTag("wall"))
         {
-            Debug.Log("Hit wall!!");
-            AddReward(-0.1f);
+            // Debug.Log("Hit wall!!");
+            // AddReward(-0.1f);
             gridManager.SetWall(transform.position);
             gridManager.SetVisited(transform.position);
 
@@ -436,7 +449,7 @@ public class DungeonAgentFire : Agent
         Debug.Log(other.gameObject.tag);
         if (other.gameObject.CompareTag("symbol_O_Goal") || other.gameObject.CompareTag("fire"))
         {
-            AddReward(2f);
+            SetReward(2f);
             StartCoroutine(GoalScoredSwapGroundMaterial(m_HallwaySettings.goalScoredMaterial, 0.5f));
             StartCoroutine(SwapGoalMaterial(m_HallwaySettings.waterMaterial, 0.5f));
 
@@ -477,6 +490,7 @@ public class DungeonAgentFire : Agent
     public override void OnEpisodeBegin()
     {
         Debug.Log("ON EPISODE BEGIN");
+        m_Configuration = modernRoomGenerator.maximumRoomCount;
         gridManager.ResetGrid();
 
         // Reset all doors in the scene
@@ -547,6 +561,47 @@ public class DungeonAgentFire : Agent
         }
 
     }
+    void FixedUpdate()
+    {
+        if (m_Configuration != -1)
+        {
+            ConfigureAgent(m_Configuration);
+            m_Configuration = -1;
+        }
+    }
 
+    /// <summary>
+    /// Configures the agent's neural network model based on the specified room configuration.
+    /// </summary>
+    /// <param name="config">The configuration identifier. Accepts values 2, 3, and others for default behavior.</param>
+    void ConfigureAgent(int config)
+    {
+        Debug.Log("Config: " + config);
+        if (twoRoomBrain == null || threeRoomBrain == null || dynamicRoomBrain == null)
+        {
+            Debug.LogError("CUSTOM ERROR: One or more brain models are null. Please assign brain models in the inspector.");
+            return;
+        }
+        if (config == 2)
+        {
+            SetModel("TwoRoom", twoRoomBrain);
+        }
+        else if (config == 3)
+        {
 
+            SetModel("ThreeRoom", threeRoomBrain);
+        }
+        else if (config == 4)
+        {
+            SetModel("FourRoom", fourRoomBrain);
+        }
+        else if (config == 5)
+        {
+            SetModel("FiveRoom", fiveRoomBrain);
+        }
+        else
+        {
+            SetModel("FiveRoom", dynamicRoomBrain);
+        }
+    }
 }

@@ -152,7 +152,7 @@ public class GridManager : MonoBehaviour
             // Reward or penalty based on the new state
             if (state)
             {
-                agentComponent.AddReward(0.1f); // Reward for visiting a new cell
+                agentComponent.AddReward(0.01f); // Reward for visiting a new cell
             }
         }
         else
@@ -197,12 +197,27 @@ public class GridManager : MonoBehaviour
     public void SetFire(Vector3 worldPosition, bool state = true)
     {
         Vector2Int gridPosition = WorldToGrid(worldPosition);
+        if (!IsValidGridPosition(gridPosition))
+        {
+            return;
+        }
+
+        var agentComponent = agent.GetComponent<DungeonAgentFire>();
+
         if (grid[gridPosition.x, gridPosition.y].hasFire != state)
         {
             grid[gridPosition.x, gridPosition.y].hasFire = state;
+
+            // Give a reward for discovering fire for the first time
+            if (state)
+            {
+                Debug.Log("Reward discover fire!");
+                agentComponent.AddReward(0.5f);
+            }
             // Optionally: Trigger any events or notifications about the state change
         }
     }
+
 
 
 

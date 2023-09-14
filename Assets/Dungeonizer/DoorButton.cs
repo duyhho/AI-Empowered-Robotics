@@ -45,7 +45,7 @@ public class DoorButton : MonoBehaviour
             if (door.doorIsOpen == false)
             {
                 Debug.Log("Door Reward!");
-                other.gameObject.transform.GetComponent<DungeonAgentFire>().SetReward(2f);
+                // other.gameObject.transform.GetComponent<DungeonAgentFire>().AddReward(1f);
             }
             door.doorIsOpen = true; // Instead of changing the button's state, change the door's state
 
