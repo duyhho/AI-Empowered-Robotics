@@ -1,0 +1,41 @@
+{
+    "name": "root",
+    "metadata": {
+        "timer_format_version": "0.1.0",
+        "start_time_seconds": "1694739133",
+        "python_version": "3.7.16 (default, Jan 17 2023, 16:06:28) [MSC v.1916 64 bit (AMD64)]",
+        "command_line_arguments": "C:\\Users\\dhh3hb\\Anaconda3\\envs\\ml-agents-108\\Scripts\\mlagents-learn D:\\GitHub\\SampleMLAgents\\config\\DynamicRoomAgentRL.yaml --run-id DynamicAgent_RL_04",
+        "mlagents_version": "0.17.0",
+        "mlagents_envs_version": "0.17.0",
+        "communication_protocol_version": "1.0.0",
+        "tensorflow_version": "2.11.0",
+        "end_time_seconds": "1694739196"
+    },
+    "total": 62.997157800000004,
+    "count": 1,
+    "self": 0.26805340000000655,
+    "children": {
+        "run_training.setup": {
+            "total": 0.012171200000000049,
+            "count": 1,
+            "self": 0.012171200000000049
+        },
+        "TrainerController.start_learning": {
+            "total": 62.7169332,
+            "count": 1,
+            "self": 0.00018750000000267164,
+            "children": {
+                "TrainerController._reset_env": {
+                    "total": 62.71647099999999,
+                    "count": 1,
+                    "self": 62.71647099999999
+                },
+                "TrainerController._save_model": {
+                    "total": 0.0002747000000056232,
+                    "count": 1,
+                    "self": 0.0002747000000056232
+                }
+            }
+        }
+    }
+}
