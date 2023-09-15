@@ -485,20 +485,24 @@ public class DungeonAgentFire : Agent
 
     void UpdateModelStats()
     {
-        ModelStats currentStats = modelStatsList[modelIndex];
+        if (modelIndex >= 0)
+        {
+            ModelStats currentStats = modelStatsList[modelIndex];
 
-        float timeToReachFire = Time.time - episodeStartTime;
-        currentStats.cumulativeTimeToReachFire += timeToReachFire;
+            float timeToReachFire = Time.time - episodeStartTime;
+            currentStats.cumulativeTimeToReachFire += timeToReachFire;
 
-        currentStats.successfulAttempts += 1; // Increment successful attempts
-        float averageTime = currentStats.cumulativeTimeToReachFire / currentStats.successfulAttempts;
-        currentStats.averageTime = averageTime;
+            currentStats.successfulAttempts += 1; // Increment successful attempts
+            float averageTime = currentStats.cumulativeTimeToReachFire / currentStats.successfulAttempts;
+            currentStats.averageTime = averageTime;
 
-        // Include the model set in your log messages
-        // Debug.Log("Model Set: " + modelIndex);
-        Debug.Log("Time to reach the fire: " + timeToReachFire + " seconds");
-        Debug.Log("Average time to reach the fire successfully (Model Set " + modelIndex + "): " + averageTime + " seconds");
-        Debug.Log("Success rate (Model Set " + modelIndex + "): " + ((float)currentStats.successfulAttempts / currentStats.attemptCount) * 100 + "% (" + currentStats.successfulAttempts + "-" + currentStats.attemptCount + ")");
+            // Include the model set in your log messages
+            // Debug.Log("Model Set: " + modelIndex);
+            Debug.Log("Time to reach the fire: " + timeToReachFire + " seconds");
+            Debug.Log("Average time to reach the fire successfully (Model Set " + modelIndex + "): " + averageTime + " seconds");
+            Debug.Log("Success rate (Model Set " + modelIndex + "): " + ((float)currentStats.successfulAttempts / currentStats.attemptCount) * 100 + "% (" + currentStats.successfulAttempts + "-" + currentStats.attemptCount + ")");
+        }
+
     }
 
     public override void Heuristic(float[] actionsOut)
@@ -538,10 +542,13 @@ public class DungeonAgentFire : Agent
         {
             CheckCurrentEvaluationModels();
 
-            Debug.Log("ON EPISODE BEGIN"
-                + "- Model Set: " + modelIndex
-                + "- Attempt Count: " + modelStatsList[modelIndex].attemptCount
-                + "- Success: " + modelStatsList[modelIndex].successfulAttempts);
+            if (modelIndex >= 0) //
+            {
+                Debug.Log("ON EPISODE BEGIN"
+                        + "- Model Set: " + modelIndex
+                        + "- Attempt Count: " + modelStatsList[modelIndex].attemptCount
+                        + "- Success: " + modelStatsList[modelIndex].successfulAttempts);
+            }
         }
         else
         {
@@ -600,16 +607,22 @@ public class DungeonAgentFire : Agent
     {
         if (isEvaluation)
         {
-            // Switch model for the next episode
-            modelIndex += 1;
+            // If all models have been tested in the current layout
+            if (modelIndex >= totalModelSets - 1)
+            {
+                modelIndex = -1;  // Reset the index to -1
+                ResetEnvironment(); // Generate a new environment layout here
+            }
+            modelIndex += 1;  // Increment modelIndex at the start
+
+            // Ensure modelIndex is in bounds before using it to index into modelStatsList
+            if (modelIndex < totalModelSets)
+            {
+                modelStatsList[modelIndex].attemptCount += 1;
+            }
+
             Debug.Log("ON EPISODE END! Current Model Set: " + modelIndex);
 
-            // If all models have been tested in the current layout
-            if (modelIndex == totalModelSets)
-            {
-                modelIndex = -1;  // Reset the index
-                ResetEnvironment();// Generate a new environment layout here
-            }
 
         }
         if (isEvaluation)
@@ -642,13 +655,12 @@ public class DungeonAgentFire : Agent
 #if UNITY_EDITOR
                 EditorApplication.isPlaying = false;
 #else
-        Application.Quit();
+            Application.Quit();
 #endif
             }
+
         }
 
-
-        modelStatsList[modelIndex].attemptCount += 1;
     }
     public void ResetEnvironment()
     {
@@ -728,34 +740,39 @@ public class DungeonAgentFire : Agent
         else //use evaluationModelSets here
         {
             Debug.Log("Config: " + config);
-            if (evaluationModelSets.Count == 0 || evaluationModelSets[modelIndex].Models.Count == 0)
+
+            if (modelIndex >= 0)
             {
-                Debug.LogError("CUSTOM ERROR: The evaluation model set is empty. Please assign model sets in the inspector.");
-                return;
+                if (evaluationModelSets.Count == 0 || evaluationModelSets[modelIndex].Models.Count == 0)
+                {
+                    Debug.LogError("CUSTOM ERROR: The evaluation model set is empty. Please assign model sets in the inspector.");
+                    return;
+                }
+                // Debug.Log("modelIndex: " + modelIndex);
+                // Fetch the appropriate NNModelSet based on the current modelIndex
+                NNModelSet currentModelSet = evaluationModelSets[modelIndex];
+                // Fetch the appropriate NNModel based on the config value
+                string behaviorName = config switch
+                {
+                    2 => "RoomTwo",
+                    3 => "RoomThree",
+                    4 => "RoomFour",
+                    5 => "RoomFive",
+                    _ => "RoomDynamic",
+                };
+
+                int modelIndexInSet = config - 2;
+                if (modelIndexInSet >= 0 && modelIndexInSet < currentModelSet.Models.Count)
+                {
+                    SetModel(behaviorName, currentModelSet.Models[modelIndexInSet]);
+                }
+                else
+                {
+                    Debug.LogError("CUSTOM ERROR: Invalid config value or the NNModel list does not contain a model for the specified config.");
+                }
             }
 
-            // Fetch the appropriate NNModelSet based on the current modelIndex
-            NNModelSet currentModelSet = evaluationModelSets[modelIndex];
 
-            // Fetch the appropriate NNModel based on the config value
-            string behaviorName = config switch
-            {
-                2 => "RoomTwo",
-                3 => "RoomThree",
-                4 => "RoomFour",
-                5 => "RoomFive",
-                _ => "RoomDynamic",
-            };
-
-            int modelIndexInSet = config - 2;
-            if (modelIndexInSet >= 0 && modelIndexInSet < currentModelSet.Models.Count)
-            {
-                SetModel(behaviorName, currentModelSet.Models[modelIndexInSet]);
-            }
-            else
-            {
-                Debug.LogError("CUSTOM ERROR: Invalid config value or the NNModel list does not contain a model for the specified config.");
-            }
         }
     }
 }

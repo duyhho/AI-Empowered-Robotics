@@ -211,8 +211,8 @@ public class GridManager : MonoBehaviour
             // Give a reward for discovering fire for the first time
             if (state)
             {
-                Debug.Log("Reward discover fire!");
-                agentComponent.AddReward(0.5f);
+                // Debug.Log("Reward discover fire!");
+                // agentComponent.AddReward(0.5f);
             }
             // Optionally: Trigger any events or notifications about the state change
         }
