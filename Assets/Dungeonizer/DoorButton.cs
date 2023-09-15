@@ -20,7 +20,7 @@ public class DoorButton : MonoBehaviour
 
         // Just to ensure that we start with the default material
         buttonRenderer.material = defaultMaterial;
-        Debug.Log("initialPosition: " + initialPosition);
+        // Debug.Log("initialPosition: " + initialPosition);
     }
 
     private void Update()
@@ -44,7 +44,7 @@ public class DoorButton : MonoBehaviour
         {
             if (door.doorIsOpen == false)
             {
-                Debug.Log("Door Reward!");
+                // Debug.Log("Door Reward!");
                 // other.gameObject.transform.GetComponent<DungeonAgentFire>().AddReward(1f);
             }
             door.doorIsOpen = true; // Instead of changing the button's state, change the door's state
@@ -65,7 +65,7 @@ public class DoorButton : MonoBehaviour
         if (transform.localPosition.y > initialPosition.y - pressDistance)
         {
             transform.localPosition = new Vector3(transform.localPosition.x, initialPosition.y - pressDistance, transform.localPosition.z);
-            Debug.Log("Pressed Position: " + transform.localPosition);
+            // Debug.Log("Pressed Position: " + transform.localPosition);
 
             // Change the button's material to the pressed material
             buttonRenderer.material = pressedMaterial;
@@ -78,11 +78,11 @@ public class DoorButton : MonoBehaviour
     {
         if (transform.localPosition.y < initialPosition.y)
         {
-            Debug.Log("initialPosition: " + initialPosition);
+            // Debug.Log("initialPosition: " + initialPosition);
 
             transform.localPosition = new Vector3(transform.localPosition.x, initialPosition.y, transform.localPosition.z);
 
-            Debug.Log("Released Position: " + transform.localPosition);
+            // Debug.Log("Released Position: " + transform.localPosition);
 
             // Change the button's material back to the default material
             buttonRenderer.material = defaultMaterial;

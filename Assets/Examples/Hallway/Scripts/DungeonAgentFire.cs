@@ -3,7 +3,7 @@ using UnityEngine;
 using Unity.MLAgents;
 using Unity.Barracuda;
 using Unity.MLAgents.Sensors;
-
+using UnityEditor;
 using System.Collections.Generic;
 public class DungeonAgentFire : Agent
 {
@@ -14,13 +14,6 @@ public class DungeonAgentFire : Agent
     ParticleSystem fireParticleSystem;
     ParticleSystem waterParticleSystem;
     RoomManager roomManager;
-
-    // public GameObject symbolO;
-    // public GameObject symbolX;
-    // public GameObject door;
-    // public DoorGenerator doorGenerator;
-
-    // public Button3D doorSwitch;
     public ModernRoomGenerator modernRoomGenerator;
     public bool useVectorObs;
 
@@ -52,6 +45,25 @@ public class DungeonAgentFire : Agent
     public NNModel fiveRoomBrain;
     public NNModel dynamicRoomBrain;
 
+
+    [Header("Evaluation Metrics")]
+    public int maxAttempts = 5;
+    public bool isEvaluation = false;
+    private float episodeStartTime;
+    private float cumulativeTimeToReachFire = 0f;
+    private int attemptCount = 0;
+    private float averageTime = 0f;
+    private bool isSuccessful = false;
+    private int successfulAttempts = 0;
+    [SerializeField]
+    int modelIndex = 0;
+    public NNModel twoRoomBrain2;
+
+    public NNModel threeRoomBrain2;
+
+    public NNModel fourRoomBrain2;
+    public NNModel fiveRoomBrain2;
+    public NNModel dynamicRoomBrain2;
     public override void Initialize()
     {
         // Debug.Log("Init");
@@ -187,7 +199,7 @@ public class DungeonAgentFire : Agent
                 }
                 else if (hitInfo.collider.gameObject.CompareTag("door_switch"))
                 {
-                    Debug.Log("Raycast hit door!");
+                    // Debug.Log("Raycast hit door!");
                     gridManager.SetDoor(hitInfo.point);
                 }
                 else if (hitInfo.collider.gameObject.CompareTag("symbol_O_Goal") || hitInfo.collider.gameObject.CompareTag("fire"))
@@ -379,13 +391,6 @@ public class DungeonAgentFire : Agent
 
     void OnCollisionEnter(Collision col)
     {
-        // Debug.Log(col.gameObject.tag);
-        // if (col.gameObject.CompareTag("ground"))
-        // {
-        //     Debug.Log("Set ground!!");
-
-        //     gridManager.SetGround(transform.position);
-        // }
         if (col.gameObject.CompareTag("wall"))
         {
             // Debug.Log("Hit wall!!");
@@ -424,37 +429,44 @@ public class DungeonAgentFire : Agent
     }
     private IEnumerator DelayedEndEpisode()
     {
-        yield return new WaitForSeconds(0.6f); // Wait for 1 second
-        modernRoomGenerator.ClearOldDungeon();
-        modernRoomGenerator.Generate();
-        gridManager.ResetGrid();
+        yield return new WaitForSeconds(0.01f); // Wait for 1 second
+        if (!isEvaluation)
+        {
+            ResetEnvironment();
+        }
         EndEpisode();
+
     }
 
     private void OnTriggerEnter(Collider other)
     {
         if (other.gameObject.CompareTag("door_switch"))
         {
-            // Debug.Log("Hit door! Reward!");
-
             /*Reward is set in Door Button.cs script */
             // AddReward(1f);
-
-            // EndEpisode();
             gridManager.SetDoor(transform.position);
             gridManager.SetVisited(transform.position);
 
         }
 
-        Debug.Log(other.gameObject.tag);
+        // Debug.Log(other.gameObject.tag);
         if (other.gameObject.CompareTag("symbol_O_Goal") || other.gameObject.CompareTag("fire"))
         {
+            float timeToReachFire = Time.time - episodeStartTime;
+            cumulativeTimeToReachFire += timeToReachFire;
+
+            successfulAttempts += 1; // Increment successful attempts
+            isSuccessful = true;
+            averageTime = cumulativeTimeToReachFire / successfulAttempts;
+            Debug.Log("Time to reach the fire: " + timeToReachFire + " seconds");
+            Debug.Log("Average time to reach the fire successfully: " + averageTime + " seconds");
+            Debug.Log("Success rate: " + ((float)successfulAttempts / attemptCount) * 100 + "% (" + successfulAttempts + "-" + attemptCount + ")");
+
+
+
             SetReward(2f);
             StartCoroutine(GoalScoredSwapGroundMaterial(m_HallwaySettings.goalScoredMaterial, 0.5f));
             StartCoroutine(SwapGoalMaterial(m_HallwaySettings.waterMaterial, 0.5f));
-
-            // PlayWaterAndStopFire();
-            // EndEpisode();
             StartCoroutine(DelayedEndEpisode()); // Use the coroutine here
 
             gridManager.SetFire(transform.position);
@@ -486,10 +498,23 @@ public class DungeonAgentFire : Agent
             actionsOut[0] = 2;
         }
     }
-
+    private void OnLayoutChange()
+    {
+        cumulativeTimeToReachFire = 0f;
+        attemptCount = 0;
+        averageTime = 0f;
+        successfulAttempts = 0;
+    }
     public override void OnEpisodeBegin()
     {
-        Debug.Log("ON EPISODE BEGIN");
+        attemptCount += 1;
+
+        Debug.Log("ON EPISODE BEGIN" + "- Attempt Count: " + attemptCount + "Success: " + successfulAttempts);
+
+        // Debug.Log("Attempt Count: " + attemptCount);
+
+        isSuccessful = false; // Reset the success flag for the new episode
+        episodeStartTime = Time.time;
         m_Configuration = modernRoomGenerator.maximumRoomCount;
         gridManager.ResetGrid();
 
@@ -502,8 +527,8 @@ public class DungeonAgentFire : Agent
 
         if (symbolOGoal)
         {
-            Vector3 randomFirePosition = roomManager.GetRandomGoalPosition();
-            symbolOGoal.transform.position = randomFirePosition;
+            // Vector3 randomFirePosition = roomManager.GetRandomGoalPosition();
+            // symbolOGoal.transform.position = randomFirePosition;
             m_GoalRenderer = symbolOGoal.GetComponent<Renderer>();
             m_GoalMaterial = m_GoalRenderer.material;
 
@@ -536,7 +561,38 @@ public class DungeonAgentFire : Agent
         transform.rotation = Quaternion.Euler(0f, Random.Range(0f, 360f), 0f);
         m_AgentRb.velocity *= 0f;
     }
+    void OnEpisodeEnd()
+    {
+        if (isEvaluation)
+        {
+            // Switch model for the next episode
+            modelIndex += 1;
 
+            // If all models have been tested in the current layout
+            if (modelIndex == 2)
+            {
+                modelIndex = 0;  // Reset the index
+                ResetEnvironment();// Generate a new environment layout here
+            }
+
+        }
+        if (isEvaluation && attemptCount >= maxAttempts)
+        {
+#if UNITY_EDITOR
+            EditorApplication.isPlaying = false;
+#else
+                Application.Quit();
+#endif
+        }
+
+
+    }
+    public void ResetEnvironment()
+    {
+        modernRoomGenerator.ClearOldDungeon();
+        modernRoomGenerator.Generate();
+        gridManager.ResetGrid();
+    }
     public void PlayWaterAndStopFire()
     {
         Debug.Log("Play Water");
@@ -576,32 +632,101 @@ public class DungeonAgentFire : Agent
     /// <param name="config">The configuration identifier. Accepts values 2, 3, and others for default behavior.</param>
     void ConfigureAgent(int config)
     {
-        Debug.Log("Config: " + config);
-        if (twoRoomBrain == null || threeRoomBrain == null || dynamicRoomBrain == null)
+        if (!isEvaluation)
         {
-            Debug.LogError("CUSTOM ERROR: One or more brain models are null. Please assign brain models in the inspector.");
-            return;
-        }
-        if (config == 2)
-        {
-            SetModel("TwoRoom", twoRoomBrain);
-        }
-        else if (config == 3)
-        {
+            Debug.Log("Config: " + config);
+            if (twoRoomBrain == null || threeRoomBrain == null || dynamicRoomBrain == null)
+            {
+                Debug.LogError("CUSTOM ERROR: One or more brain models are null. Please assign brain models in the inspector.");
+                return;
+            }
+            if (config == 2)
+            {
+                SetModel("TwoRoom", twoRoomBrain);
+            }
+            else if (config == 3)
+            {
 
-            SetModel("ThreeRoom", threeRoomBrain);
-        }
-        else if (config == 4)
-        {
-            SetModel("FourRoom", fourRoomBrain);
-        }
-        else if (config == 5)
-        {
-            SetModel("FiveRoom", fiveRoomBrain);
+                SetModel("ThreeRoom", threeRoomBrain);
+            }
+            else if (config == 4)
+            {
+                SetModel("FourRoom", fourRoomBrain);
+            }
+            else if (config == 5)
+            {
+                SetModel("FiveRoom", fiveRoomBrain);
+            }
+            else
+            {
+                SetModel("FiveRoom", dynamicRoomBrain);
+            }
         }
         else
         {
-            SetModel("FiveRoom", dynamicRoomBrain);
+            Debug.Log("Config: " + config);
+            if (twoRoomBrain == null || threeRoomBrain == null || dynamicRoomBrain == null)
+            {
+                Debug.LogError("CUSTOM ERROR: One or more brain models are null. Please assign brain models in the inspector.");
+                return;
+            }
+            if (config == 2)
+            {
+                if (modelIndex == 0)
+                {
+                    SetModel("TwoRoom", twoRoomBrain);
+                }
+                else if (modelIndex == 1)
+                {
+                    SetModel("TwoRoom", twoRoomBrain2);
+                }
+            }
+            else if (config == 3)
+            {
+                if (modelIndex == 0)
+                {
+                    SetModel("ThreeRoom", threeRoomBrain);
+                }
+                else if (modelIndex == 1)
+                {
+                    SetModel("ThreeRoom", threeRoomBrain2);
+                }
+
+            }
+            else if (config == 4)
+            {
+                if (modelIndex == 0)
+                {
+                    SetModel("FourRoom", fourRoomBrain);
+                }
+                else if (modelIndex == 1)
+                {
+                    SetModel("FourRoom", fourRoomBrain2);
+                }
+
+            }
+            else if (config == 5)
+            {
+                if (modelIndex == 0)
+                {
+                    SetModel("FiveRoom", fiveRoomBrain);
+                }
+                else if (modelIndex == 1)
+                {
+                    SetModel("FiveRoom", fiveRoomBrain2);
+                }
+            }
+            else
+            {
+                if (modelIndex == 0)
+                {
+                    SetModel("FiveRoom", fiveRoomBrain);
+                }
+                else if (modelIndex == 1)
+                {
+                    SetModel("FiveRoom", fiveRoomBrain2);
+                }
+            }
         }
     }
 }

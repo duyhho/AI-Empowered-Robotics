@@ -902,9 +902,13 @@ public class ModernRoomGenerator : MonoBehaviour
         }
         else
         {
+            Vector3 randomFirePosition = roomManager.GetRandomGoalPosition();
+            // symbolOGoal.transform.position = randomFirePosition;
             Vector3 endPointPosition = new Vector3((Dungeon.goalRoom.x + Mathf.FloorToInt(Dungeon.goalRoom.w / 2)) * tileScaling, 0.5f + parentOffsetHeight, (Dungeon.goalRoom.y + Mathf.FloorToInt(Dungeon.goalRoom.h / 2)) * tileScaling);
             Vector3 startPointPosition = new Vector3((Dungeon.startRoom.x + Mathf.FloorToInt(Dungeon.startRoom.w / 2)) * tileScaling, 0.5f + parentOffsetHeight, (Dungeon.startRoom.y + Mathf.FloorToInt(Dungeon.startRoom.h / 2)) * tileScaling);
-            end_point = GameObject.Instantiate(exitPrefab, endPointPosition, Quaternion.identity) as GameObject;
+            // end_point = GameObject.Instantiate(exitPrefab, endPointPosition, Quaternion.identity) as GameObject;
+            end_point = GameObject.Instantiate(exitPrefab, randomFirePosition, Quaternion.identity) as GameObject;
+
             start_point = GameObject.Instantiate(startPrefab, startPointPosition, Quaternion.identity) as GameObject;
             roomManager.startPoint = startPointPosition;
             roomManager.endPoint = endPointPosition;

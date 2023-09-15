@@ -169,7 +169,7 @@ public class RoomManager : MonoBehaviour
             Room startRoom = allRooms[0]; // Note: we currently aren't using startRoom.
 
             // Generate a random offset within the room's boundaries, ensuring it is away from the walls
-            float margin = tileScaling / 2f;  // Adjusting margin to be half the cell size
+            float margin = tileScaling * 1.5f;  // Adjusting margin to be half the cell size
             float xOffset = UnityEngine.Random.Range(margin, goalRoom.w * tileScaling - margin);
             float zOffset = UnityEngine.Random.Range(margin, goalRoom.h * tileScaling - margin);
 

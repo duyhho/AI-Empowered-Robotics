@@ -114016,7 +114016,7 @@ MonoBehaviour:
   agentParameters:
     maxStep: 0
   hasUpgradedFromAgentParameters: 1
-  MaxStep: 5000
+  MaxStep: 100
   area: {fileID: 1432695672}
   symbolOGoal: {fileID: 1901334173}
   modernRoomGenerator: {fileID: 1262109783}
@@ -114027,11 +114027,14 @@ MonoBehaviour:
   sideAngle: 25
   rayDistance: 15
   drawGizmos: 0
+  m_Configuration: 0
   twoRoomBrain: {fileID: 0}
   threeRoomBrain: {fileID: 0}
   fourRoomBrain: {fileID: 0}
   fiveRoomBrain: {fileID: 0}
   dynamicRoomBrain: {fileID: 0}
+  maxAttempts: 10
+  isEvaluation: 0
 --- !u!114 &1939658969
 MonoBehaviour:
   m_ObjectHideFlags: 0
