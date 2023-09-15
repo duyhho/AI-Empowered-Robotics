@@ -5,9 +5,26 @@ using Unity.Barracuda;
 using Unity.MLAgents.Sensors;
 using UnityEditor;
 using System.Collections.Generic;
+
 public class DungeonAgentFire : Agent
 {
-    // public GameObject ground;
+    [System.Serializable]
+    public class NNModelSet
+    {
+        public List<NNModel> Models = new List<NNModel>();
+    }
+    [SerializeField]
+    List<ModelStats> modelStatsList = new List<ModelStats>();
+
+    [System.Serializable]
+    public class ModelStats
+    {
+        public float cumulativeTimeToReachFire = 0f;
+        public float averageTime = 0f;
+        public int successfulAttempts = 0;
+        public int attemptCount = 0;
+    }
+
     private List<Renderer> m_GroundRenderers = new List<Renderer>();
     public GameObject area;
     public GameObject symbolOGoal;
@@ -50,20 +67,12 @@ public class DungeonAgentFire : Agent
     public int maxAttempts = 5;
     public bool isEvaluation = false;
     private float episodeStartTime;
-    private float cumulativeTimeToReachFire = 0f;
-    private int attemptCount = 0;
-    private float averageTime = 0f;
-    private bool isSuccessful = false;
-    private int successfulAttempts = 0;
     [SerializeField]
-    int modelIndex = 0;
-    public NNModel twoRoomBrain2;
-
-    public NNModel threeRoomBrain2;
-
-    public NNModel fourRoomBrain2;
-    public NNModel fiveRoomBrain2;
-    public NNModel dynamicRoomBrain2;
+    int modelIndex = -1;
+    [SerializeField]
+    int totalModelSets = 0;
+    [SerializeField]
+    List<NNModelSet> evaluationModelSets = new List<NNModelSet>();
     public override void Initialize()
     {
         // Debug.Log("Init");
@@ -88,7 +97,12 @@ public class DungeonAgentFire : Agent
         m_GoalRenderer = symbolOGoal.GetComponent<Renderer>();
         m_GoalMaterial = m_GoalRenderer.material;
 
-        // DoorComponent = door.GetComponent<openandclosedoor>();
+        totalModelSets = evaluationModelSets.Count;
+        for (int i = 0; i < totalModelSets; i++)
+        {
+            modelStatsList.Add(new ModelStats());
+        }
+
 
     }
 
@@ -452,21 +466,14 @@ public class DungeonAgentFire : Agent
         // Debug.Log(other.gameObject.tag);
         if (other.gameObject.CompareTag("symbol_O_Goal") || other.gameObject.CompareTag("fire"))
         {
-            float timeToReachFire = Time.time - episodeStartTime;
-            cumulativeTimeToReachFire += timeToReachFire;
+            if (isEvaluation)
+            {
+                UpdateModelStats();
 
-            successfulAttempts += 1; // Increment successful attempts
-            isSuccessful = true;
-            averageTime = cumulativeTimeToReachFire / successfulAttempts;
-            Debug.Log("Time to reach the fire: " + timeToReachFire + " seconds");
-            Debug.Log("Average time to reach the fire successfully: " + averageTime + " seconds");
-            Debug.Log("Success rate: " + ((float)successfulAttempts / attemptCount) * 100 + "% (" + successfulAttempts + "-" + attemptCount + ")");
-
-
-
+            }
             SetReward(2f);
             StartCoroutine(GoalScoredSwapGroundMaterial(m_HallwaySettings.goalScoredMaterial, 0.5f));
-            StartCoroutine(SwapGoalMaterial(m_HallwaySettings.waterMaterial, 0.5f));
+            // StartCoroutine(SwapGoalMaterial(m_HallwaySettings.waterMaterial, 0.5f));
             StartCoroutine(DelayedEndEpisode()); // Use the coroutine here
 
             gridManager.SetFire(transform.position);
@@ -476,7 +483,23 @@ public class DungeonAgentFire : Agent
 
     }
 
+    void UpdateModelStats()
+    {
+        ModelStats currentStats = modelStatsList[modelIndex];
 
+        float timeToReachFire = Time.time - episodeStartTime;
+        currentStats.cumulativeTimeToReachFire += timeToReachFire;
+
+        currentStats.successfulAttempts += 1; // Increment successful attempts
+        float averageTime = currentStats.cumulativeTimeToReachFire / currentStats.successfulAttempts;
+        currentStats.averageTime = averageTime;
+
+        // Include the model set in your log messages
+        // Debug.Log("Model Set: " + modelIndex);
+        Debug.Log("Time to reach the fire: " + timeToReachFire + " seconds");
+        Debug.Log("Average time to reach the fire successfully (Model Set " + modelIndex + "): " + averageTime + " seconds");
+        Debug.Log("Success rate (Model Set " + modelIndex + "): " + ((float)currentStats.successfulAttempts / currentStats.attemptCount) * 100 + "% (" + currentStats.successfulAttempts + "-" + currentStats.attemptCount + ")");
+    }
 
     public override void Heuristic(float[] actionsOut)
     {
@@ -500,20 +523,32 @@ public class DungeonAgentFire : Agent
     }
     private void OnLayoutChange()
     {
-        cumulativeTimeToReachFire = 0f;
-        attemptCount = 0;
-        averageTime = 0f;
-        successfulAttempts = 0;
+        foreach (var modelStats in modelStatsList)
+        {
+            modelStats.cumulativeTimeToReachFire = 0f;
+            modelStats.attemptCount = 0;
+            modelStats.averageTime = 0f;
+            modelStats.successfulAttempts = 0;
+        }
     }
+
     public override void OnEpisodeBegin()
     {
-        attemptCount += 1;
+        if (isEvaluation)
+        {
+            CheckCurrentEvaluationModels();
 
-        Debug.Log("ON EPISODE BEGIN" + "- Attempt Count: " + attemptCount + "Success: " + successfulAttempts);
+            Debug.Log("ON EPISODE BEGIN"
+                + "- Model Set: " + modelIndex
+                + "- Attempt Count: " + modelStatsList[modelIndex].attemptCount
+                + "- Success: " + modelStatsList[modelIndex].successfulAttempts);
+        }
+        else
+        {
+            Debug.Log("ON EPISODE BEGIN!");
+        }
 
-        // Debug.Log("Attempt Count: " + attemptCount);
 
-        isSuccessful = false; // Reset the success flag for the new episode
         episodeStartTime = Time.time;
         m_Configuration = modernRoomGenerator.maximumRoomCount;
         gridManager.ResetGrid();
@@ -561,31 +596,59 @@ public class DungeonAgentFire : Agent
         transform.rotation = Quaternion.Euler(0f, Random.Range(0f, 360f), 0f);
         m_AgentRb.velocity *= 0f;
     }
-    void OnEpisodeEnd()
+    void CheckCurrentEvaluationModels()
     {
         if (isEvaluation)
         {
             // Switch model for the next episode
             modelIndex += 1;
+            Debug.Log("ON EPISODE END! Current Model Set: " + modelIndex);
 
             // If all models have been tested in the current layout
-            if (modelIndex == 2)
+            if (modelIndex == totalModelSets)
             {
-                modelIndex = 0;  // Reset the index
+                modelIndex = -1;  // Reset the index
                 ResetEnvironment();// Generate a new environment layout here
             }
 
         }
-        if (isEvaluation && attemptCount >= maxAttempts)
+        if (isEvaluation)
         {
+            bool allAttemptsExceeded = true;
+            foreach (var modelStats in modelStatsList)
+            {
+                if (modelStats.attemptCount < maxAttempts)
+                {
+                    allAttemptsExceeded = false;
+                    break;
+                }
+            }
+
+            if (allAttemptsExceeded)
+            {
+                // Print a summary of all metrics
+                for (int i = 0; i < modelStatsList.Count; i++)
+                {
+                    var modelStats = modelStatsList[i];
+                    float averageTime = modelStats.cumulativeTimeToReachFire / modelStats.successfulAttempts;
+                    float successRate = ((float)modelStats.successfulAttempts / modelStats.attemptCount) * 100;
+
+                    Debug.Log("Model Set " + i + " Summary:");
+                    Debug.Log(" - Average Time: " + averageTime + " seconds");
+                    Debug.Log(" - Success Rate: " + successRate + "% (" + modelStats.successfulAttempts + "/" + modelStats.attemptCount + ")");
+
+                }
+
 #if UNITY_EDITOR
-            EditorApplication.isPlaying = false;
+                EditorApplication.isPlaying = false;
 #else
-                Application.Quit();
+        Application.Quit();
 #endif
+            }
         }
 
 
+        modelStatsList[modelIndex].attemptCount += 1;
     }
     public void ResetEnvironment()
     {
@@ -632,7 +695,7 @@ public class DungeonAgentFire : Agent
     /// <param name="config">The configuration identifier. Accepts values 2, 3, and others for default behavior.</param>
     void ConfigureAgent(int config)
     {
-        if (!isEvaluation)
+        if (!isEvaluation) //keep this for training logic
         {
             Debug.Log("Config: " + config);
             if (twoRoomBrain == null || threeRoomBrain == null || dynamicRoomBrain == null)
@@ -662,70 +725,36 @@ public class DungeonAgentFire : Agent
                 SetModel("FiveRoom", dynamicRoomBrain);
             }
         }
-        else
+        else //use evaluationModelSets here
         {
             Debug.Log("Config: " + config);
-            if (twoRoomBrain == null || threeRoomBrain == null || dynamicRoomBrain == null)
+            if (evaluationModelSets.Count == 0 || evaluationModelSets[modelIndex].Models.Count == 0)
             {
-                Debug.LogError("CUSTOM ERROR: One or more brain models are null. Please assign brain models in the inspector.");
+                Debug.LogError("CUSTOM ERROR: The evaluation model set is empty. Please assign model sets in the inspector.");
                 return;
             }
-            if (config == 2)
-            {
-                if (modelIndex == 0)
-                {
-                    SetModel("TwoRoom", twoRoomBrain);
-                }
-                else if (modelIndex == 1)
-                {
-                    SetModel("TwoRoom", twoRoomBrain2);
-                }
-            }
-            else if (config == 3)
-            {
-                if (modelIndex == 0)
-                {
-                    SetModel("ThreeRoom", threeRoomBrain);
-                }
-                else if (modelIndex == 1)
-                {
-                    SetModel("ThreeRoom", threeRoomBrain2);
-                }
 
-            }
-            else if (config == 4)
-            {
-                if (modelIndex == 0)
-                {
-                    SetModel("FourRoom", fourRoomBrain);
-                }
-                else if (modelIndex == 1)
-                {
-                    SetModel("FourRoom", fourRoomBrain2);
-                }
+            // Fetch the appropriate NNModelSet based on the current modelIndex
+            NNModelSet currentModelSet = evaluationModelSets[modelIndex];
 
-            }
-            else if (config == 5)
+            // Fetch the appropriate NNModel based on the config value
+            string behaviorName = config switch
             {
-                if (modelIndex == 0)
-                {
-                    SetModel("FiveRoom", fiveRoomBrain);
-                }
-                else if (modelIndex == 1)
-                {
-                    SetModel("FiveRoom", fiveRoomBrain2);
-                }
+                2 => "RoomTwo",
+                3 => "RoomThree",
+                4 => "RoomFour",
+                5 => "RoomFive",
+                _ => "RoomDynamic",
+            };
+
+            int modelIndexInSet = config - 2;
+            if (modelIndexInSet >= 0 && modelIndexInSet < currentModelSet.Models.Count)
+            {
+                SetModel(behaviorName, currentModelSet.Models[modelIndexInSet]);
             }
             else
             {
-                if (modelIndex == 0)
-                {
-                    SetModel("FiveRoom", fiveRoomBrain);
-                }
-                else if (modelIndex == 1)
-                {
-                    SetModel("FiveRoom", fiveRoomBrain2);
-                }
+                Debug.LogError("CUSTOM ERROR: Invalid config value or the NNModel list does not contain a model for the specified config.");
             }
         }
     }
