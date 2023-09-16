@@ -1,0 +1,6 @@
+model_checkpoint_path: "model-8001475.ckpt"
+all_model_checkpoint_paths: "model-6499954.ckpt"
+all_model_checkpoint_paths: "model-6999956.ckpt"
+all_model_checkpoint_paths: "model-7499978.ckpt"
+all_model_checkpoint_paths: "model-7999949.ckpt"
+all_model_checkpoint_paths: "model-8001475.ckpt"
