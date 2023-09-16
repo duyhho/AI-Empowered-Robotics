@@ -21,11 +21,11 @@ behaviors:
         strength: 1.0
       gail:
         gamma: 0.99
-        strength: 0.7
+        strength: 0.5
         demo_path: Demos/TwoRoomAgent.demo  # Updated demo path with GAIL
     behavioral_cloning:
       demo_path: Demos/TwoRoomAgent.demo  # Updated demo path
-      strength: 0.7
+      strength: 0.5
       steps: 100000
     keep_checkpoints: 5
     max_steps: 5000000
@@ -57,12 +57,12 @@ behaviors:
         gamma: 0.99
         strength: 1.0
       curiosity:
-        strength: 0.2
+        strength: 0.4
         gamma: 0.99
         encoding_size: 128
       gail:
         gamma: 0.99
-        strength: 0.7
+        strength: 0.5
         demo_path: Demos/ThreeRoomAgent.demo  # Keep this demo path
     behavioral_cloning:
       demo_path: Demos/ThreeRoomAgent.demo  # Keep this demo path
@@ -98,12 +98,12 @@ behaviors:
         gamma: 0.99
         strength: 1.0
       curiosity:
-        strength: 0.2
+        strength: 0.4
         gamma: 0.99
         encoding_size: 128
       gail:
         gamma: 0.99
-        strength: 0.7
+        strength: 0.4
         demo_path: Demos/FourRoomAgent.demo
     behavioral_cloning:
       demo_path: Demos/FourRoomAgent.demo
@@ -139,12 +139,12 @@ behaviors:
         gamma: 0.99
         strength: 1.0
       curiosity:
-        strength: 0.2
+        strength: 0.4
         gamma: 0.99
         encoding_size: 128
       gail:
         gamma: 0.99
-        strength: 0.7
+        strength: 0.4
         demo_path: Demos/FiveRoomAgent.demo
     behavioral_cloning:
       demo_path: Demos/FiveRoomAgent.demo
