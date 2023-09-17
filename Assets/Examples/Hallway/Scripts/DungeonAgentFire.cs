@@ -758,7 +758,7 @@ public class DungeonAgentFire : Agent
                     3 => "RoomThree",
                     4 => "RoomFour",
                     5 => "RoomFive",
-                    _ => "RoomDynamic",
+                    _ => "RoomFive",
                 };
 
                 int modelIndexInSet = config - 2;
@@ -768,7 +768,7 @@ public class DungeonAgentFire : Agent
                 }
                 else
                 {
-                    Debug.LogError("CUSTOM ERROR: Invalid config value or the NNModel list does not contain a model for the specified config.");
+                    SetModel(behaviorName, currentModelSet.Models[currentModelSet.Models.Count - 1]);
                 }
             }
 
