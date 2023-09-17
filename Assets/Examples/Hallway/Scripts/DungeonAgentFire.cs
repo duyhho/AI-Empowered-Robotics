@@ -14,7 +14,7 @@ public class DungeonAgentFire : Agent
         public List<NNModel> Models = new List<NNModel>();
     }
     [SerializeField]
-    List<ModelStats> modelStatsList = new List<ModelStats>();
+    protected List<ModelStats> modelStatsList = new List<ModelStats>();
 
     [System.Serializable]
     public class ModelStats
@@ -25,26 +25,28 @@ public class DungeonAgentFire : Agent
         public int attemptCount = 0;
     }
 
-    private List<Renderer> m_GroundRenderers = new List<Renderer>();
+    protected List<Renderer> m_GroundRenderers = new List<Renderer>();
     public GameObject area;
     public GameObject symbolOGoal;
-    ParticleSystem fireParticleSystem;
-    ParticleSystem waterParticleSystem;
-    RoomManager roomManager;
+
     public ModernRoomGenerator modernRoomGenerator;
     public bool useVectorObs;
 
-    Rigidbody m_AgentRb;
-    Material m_GroundMaterial;
-    Renderer m_GroundRenderer;
-    HallwaySettings m_HallwaySettings;
-    int m_Selection;
-    openandclosedoor DoorComponent;
+    protected Rigidbody m_AgentRb;  // Changed to protected
+    protected Material m_GroundMaterial;  // Changed to protected
+    protected Renderer m_GroundRenderer;  // Changed to protected
+    protected ParticleSystem fireParticleSystem;  // Changed to protected
+    protected ParticleSystem waterParticleSystem;  // Changed to protected
+    protected RoomManager roomManager;  // Changed to protected
 
-    Material m_GoalMaterial;
-    Renderer m_GoalRenderer;
+    protected HallwaySettings m_HallwaySettings;  // Changed to protected
+    protected int m_Selection;  // Changed to protected
+    protected openandclosedoor DoorComponent;  // Changed to protected
+
+    protected Material m_GoalMaterial;  // Changed to protected
+    protected Renderer m_GoalRenderer;  // Changed to protected
     public GridManager gridManager;
-    Vector2Int lastGridPosition;
+    protected Vector2Int lastGridPosition;
     public float upAngle = 15f;
     public float downAngle = 15f;
     public float sideAngle = 15f; // angle for the side rays
@@ -66,13 +68,13 @@ public class DungeonAgentFire : Agent
     [Header("Evaluation Metrics")]
     public int maxAttempts = 5;
     public bool isEvaluation = false;
-    private float episodeStartTime;
+    protected float episodeStartTime;
     [SerializeField]
-    int modelIndex = -1;
+    protected int modelIndex = -1;
     [SerializeField]
-    int totalModelSets = 0;
+    protected int totalModelSets = 0;
     [SerializeField]
-    List<NNModelSet> evaluationModelSets = new List<NNModelSet>();
+    protected List<NNModelSet> evaluationModelSets = new List<NNModelSet>();
     public override void Initialize()
     {
         // Debug.Log("Init");
@@ -172,7 +174,7 @@ public class DungeonAgentFire : Agent
         }
 
     }
-    void RaycastUpdateGrid()
+    protected virtual void RaycastUpdateGrid()
     {
 
         Vector3 rayOrigin = transform.position;
@@ -223,7 +225,7 @@ public class DungeonAgentFire : Agent
             }
         }
     }
-    void OnDrawGizmos()
+    protected virtual void OnDrawGizmos()
     {
         if (!drawGizmos)
             return;
@@ -265,7 +267,7 @@ public class DungeonAgentFire : Agent
         // ... (rest of your existing OnDrawGizmos code)
     }
 
-    IEnumerator GoalScoredSwapGroundMaterial(Material mat, float time)
+    protected virtual IEnumerator GoalScoredSwapGroundMaterial(Material mat, float time)
     {
         if (m_GroundRenderers.Count == 0)
         {
@@ -308,7 +310,7 @@ public class DungeonAgentFire : Agent
 
 
 
-    IEnumerator SwapGoalMaterial(Material mat, float time)
+    protected virtual IEnumerator SwapGoalMaterial(Material mat, float time)
     {
         if (m_GoalRenderer)
         {
@@ -321,7 +323,7 @@ public class DungeonAgentFire : Agent
 
         }
     }
-    public void MoveAgent(float[] act)
+    public virtual void MoveAgent(float[] act)
     {
         var dirToGo = Vector3.zero;
         var rotateDir = Vector3.zero;
@@ -360,7 +362,7 @@ public class DungeonAgentFire : Agent
     }
 
     // A stub function for calculating a reward based on the direction to a door
-    private float CalculateRewardForDoor()
+    protected float CalculateRewardForDoor()
     {
         Vector2Int agentGridPosition = gridManager.WorldToGrid(transform.position);
         Vector2Int[] frontGrids = gridManager.GetFrontGrid(agentGridPosition, 5);
@@ -403,7 +405,7 @@ public class DungeonAgentFire : Agent
     }
 
 
-    void OnCollisionEnter(Collision col)
+    protected virtual void OnCollisionEnter(Collision col)
     {
         if (col.gameObject.CompareTag("wall"))
         {
@@ -415,7 +417,7 @@ public class DungeonAgentFire : Agent
 
         }
     }
-    void OnCollisionStay(Collision col)
+    protected virtual void OnCollisionStay(Collision col)
     {
         if (col.gameObject.CompareTag("ground"))
         {
@@ -441,7 +443,7 @@ public class DungeonAgentFire : Agent
 
         }
     }
-    private IEnumerator DelayedEndEpisode()
+    protected virtual IEnumerator DelayedEndEpisode()
     {
         yield return new WaitForSeconds(0.01f); // Wait for 1 second
         if (!isEvaluation)
@@ -452,7 +454,7 @@ public class DungeonAgentFire : Agent
 
     }
 
-    private void OnTriggerEnter(Collider other)
+    protected virtual void OnTriggerEnter(Collider other)
     {
         if (other.gameObject.CompareTag("door_switch"))
         {
@@ -483,7 +485,7 @@ public class DungeonAgentFire : Agent
 
     }
 
-    void UpdateModelStats()
+    protected virtual void UpdateModelStats()
     {
         if (modelIndex >= 0)
         {
@@ -525,7 +527,7 @@ public class DungeonAgentFire : Agent
             actionsOut[0] = 2;
         }
     }
-    private void OnLayoutChange()
+    protected virtual void OnLayoutChange()
     {
         foreach (var modelStats in modelStatsList)
         {
@@ -603,7 +605,7 @@ public class DungeonAgentFire : Agent
         transform.rotation = Quaternion.Euler(0f, Random.Range(0f, 360f), 0f);
         m_AgentRb.velocity *= 0f;
     }
-    void CheckCurrentEvaluationModels()
+    protected virtual void CheckCurrentEvaluationModels()
     {
         if (isEvaluation)
         {
@@ -655,20 +657,20 @@ public class DungeonAgentFire : Agent
 #if UNITY_EDITOR
                 EditorApplication.isPlaying = false;
 #else
-            Application.Quit();
+                Application.Quit();
 #endif
             }
 
         }
 
     }
-    public void ResetEnvironment()
+    public virtual void ResetEnvironment()
     {
         modernRoomGenerator.ClearOldDungeon();
         modernRoomGenerator.Generate();
         gridManager.ResetGrid();
     }
-    public void PlayWaterAndStopFire()
+    public virtual void PlayWaterAndStopFire()
     {
         Debug.Log("Play Water");
         if (symbolOGoal)
@@ -692,7 +694,7 @@ public class DungeonAgentFire : Agent
         }
 
     }
-    void FixedUpdate()
+    protected virtual void FixedUpdate()
     {
         if (m_Configuration != -1)
         {
@@ -705,7 +707,7 @@ public class DungeonAgentFire : Agent
     /// Configures the agent's neural network model based on the specified room configuration.
     /// </summary>
     /// <param name="config">The configuration identifier. Accepts values 2, 3, and others for default behavior.</param>
-    void ConfigureAgent(int config)
+    protected virtual void ConfigureAgent(int config)
     {
         if (!isEvaluation) //keep this for training logic
         {
