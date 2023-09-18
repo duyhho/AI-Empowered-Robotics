@@ -68,7 +68,14 @@ public class AgentWaterFire : DungeonAgentFire
     }
     protected override IEnumerator DelayedEndEpisode()
     {
-        yield return StartCoroutine(base.DelayedEndEpisode());
+        yield return new WaitForSeconds(0.01f); // Wait for 1 second
+        if (!isEvaluation) //in training mode
+        {
+            if (m_CarryWater)
+                ResetEnvironment();
+        }
+
+        EndEpisode();
     }
 
     protected override void OnTriggerEnter(Collider other)
@@ -138,6 +145,7 @@ public class AgentWaterFire : DungeonAgentFire
     {
         base.OnEpisodeBegin();
         gameObject.GetComponentInChildren<Renderer>().material = normalMaterial;
+        m_CarryWater = false;
     }
     protected override void CheckCurrentEvaluationModels()
     {
