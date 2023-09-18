@@ -12,6 +12,8 @@ public class AgentWaterFire : DungeonAgentFire
     public Material normalMaterial;
     public Material waterMaterial;
 
+    [SerializeField]
+    bool m_CarryWater = false;
     public override void Initialize()
     {
         base.Initialize();
@@ -19,7 +21,19 @@ public class AgentWaterFire : DungeonAgentFire
 
     public override void CollectObservations(VectorSensor sensor)
     {
-        base.CollectObservations(sensor);
+        // Debug.Log("Collecting Observations");
+        if (sensor == null)
+        {
+            Debug.LogError("Sensor is null.");
+            return;
+        }
+
+        RaycastUpdateGrid(); //this doesn't collect any observations ,just updating grid cell status;
+        if (useVectorObs)
+        {
+            sensor.AddObservation(m_CarryWater ? 1 : 0);
+            sensor.AddObservation(StepCount / (float)MaxStep);
+        }
     }
     protected override void RaycastUpdateGrid()
     {
@@ -59,7 +73,53 @@ public class AgentWaterFire : DungeonAgentFire
 
     protected override void OnTriggerEnter(Collider other)
     {
-        base.OnTriggerEnter(other);
+        // base.OnTriggerEnter(other);
+        if (other.gameObject.CompareTag("door_switch"))
+        {
+            /*Reward is set in Door Button.cs script */
+            // AddReward(1f);
+            gridManager.SetDoor(transform.position);
+            gridManager.SetVisited(transform.position);
+
+        }
+        if (other.gameObject.CompareTag("water"))
+        {
+            CarryWater();
+        }
+        // Debug.Log(other.gameObject.tag);
+        if (other.gameObject.CompareTag("fire"))
+        {
+            if (isEvaluation)
+            {
+                UpdateModelStats();
+
+            }
+            if (m_CarryWater)
+            {
+                Debug.Log("Carrying Water! Reward!");
+                SetReward(2f);
+            }
+            else
+            {
+                Debug.Log("Not Carrying Water! Punish!");
+
+                SetReward(-2f);
+            }
+            StartCoroutine(GoalScoredSwapGroundMaterial(m_HallwaySettings.goalScoredMaterial, 0.5f));
+            // StartCoroutine(SwapGoalMaterial(m_HallwaySettings.waterMaterial, 0.5f));
+            StartCoroutine(DelayedEndEpisode()); // Use the coroutine here
+
+            gridManager.SetFire(transform.position);
+            gridManager.SetVisited(transform.position);
+
+        }
+
+
+    }
+    void CarryWater()
+    {
+        m_CarryWater = true;
+        gameObject.GetComponentInChildren<Renderer>().material = waterMaterial;
     }
     protected override void UpdateModelStats()
     {
@@ -77,6 +137,7 @@ public class AgentWaterFire : DungeonAgentFire
     public override void OnEpisodeBegin()
     {
         base.OnEpisodeBegin();
+        gameObject.GetComponentInChildren<Renderer>().material = normalMaterial;
     }
     protected override void CheckCurrentEvaluationModels()
     {

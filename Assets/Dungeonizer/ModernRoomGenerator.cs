@@ -1003,49 +1003,41 @@ public class ModernRoomGenerator : MonoBehaviour
         foreach (SpawnOption objectToSpawn in spawnOptions)
         {
             objectCountToSpawn = Random.Range(objectToSpawn.minSpawnCount, objectToSpawn.maxSpawnCount);
+            if (objectToSpawn.spawnRandomly)
+            {
+                objectToSpawn.spawnRoom = Random.Range(0, maximumRoomCount);
+            }
             while (objectCountToSpawn > 0)
             {
+                Debug.Log("objectCountToSpawn" + objectCountToSpawn);
                 bool created = false;
-
-                for (int i = 0; i < spawnedObjectLocations.Count; i++)
+                if (!objectToSpawn.spawnRandomly)
                 {
-                    bool createHere = false;
-
-                    if (!spawnedObjectLocations[i].spawnedObject && !spawnedObjectLocations[i].byCorridor)
+                    for (int i = 0; i < spawnedObjectLocations.Count; i++)
                     {
+                        bool createHere = false;
 
-                        if (objectToSpawn.spawnRoom > maximumRoomCount)
+                        if (!spawnedObjectLocations[i].spawnedObject && !spawnedObjectLocations[i].byCorridor)
                         {
-                            objectToSpawn.spawnRoom = 0;
-                        }
-                        if (objectToSpawn.spawnRoom == 0)
-                        {
-                            if (objectToSpawn.spawnByWall)
+
+                            if (objectToSpawn.spawnRoom > maximumRoomCount)
                             {
-                                if (spawnedObjectLocations[i].byWall)
-                                {
-                                    createHere = true;
-                                }
+                                objectToSpawn.spawnRoom = 0;
                             }
-                            else if (objectToSpawn.spawmInTheMiddle)
-                            {
-                                if (spawnedObjectLocations[i].inTheMiddle)
-                                {
-                                    createHere = true;
-                                }
-                            }
-                            else
-                            {
-                                createHere = true;
-                            }
-                        }
-                        else
-                        {
-                            if (spawnedObjectLocations[i].room.room_id == objectToSpawn.spawnRoom)
+
+
+                            if (objectToSpawn.spawnRoom == 0)
                             {
                                 if (objectToSpawn.spawnByWall)
                                 {
                                     if (spawnedObjectLocations[i].byWall)
+                                    {
+                                        createHere = true;
+                                    }
+                                }
+                                else if (objectToSpawn.spawmInTheMiddle)
+                                {
+                                    if (spawnedObjectLocations[i].inTheMiddle)
                                     {
                                         createHere = true;
                                     }
@@ -1055,63 +1047,88 @@ public class ModernRoomGenerator : MonoBehaviour
                                     createHere = true;
                                 }
                             }
-                        }
-                    }
-
-
-                    if (createHere)
-                    { //means modernroomcreator found a suitable place to put object.
-                        SpawnList spawnLocation = spawnedObjectLocations[i];
-                        GameObject newObject;
-                        Quaternion spawnRotation = Quaternion.identity;
-
-                        if (!makeIt3d)
-                        {
-                            newObject = GameObject.Instantiate(objectToSpawn.gameObject, new Vector3(spawnLocation.x * tileScaling, spawnLocation.y * tileScaling, 0), spawnRotation) as GameObject;
-                        }
-                        else
-                        {
-                            if (spawnLocation.byWall)
+                            else
                             {
-                                if (spawnLocation.wallLocation == "s")
+                                if (spawnedObjectLocations[i].room.room_id == objectToSpawn.spawnRoom)
                                 {
-                                    spawnRotation = Quaternion.Euler(new Vector3(0, 270, 0));
+                                    if (objectToSpawn.spawnByWall)
+                                    {
+                                        if (spawnedObjectLocations[i].byWall)
+                                        {
+                                            createHere = true;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        createHere = true;
+                                    }
                                 }
-                                else if (spawnLocation.wallLocation == "n")
-                                {
-                                    spawnRotation = Quaternion.Euler(new Vector3(0, 90, 0));
-                                }
-                                else if (spawnLocation.wallLocation == "e")
-                                {
-                                    spawnRotation = Quaternion.Euler(new Vector3(0, 180, 0));
-                                }
-                                else if (spawnLocation.wallLocation == "w")
-                                {
-                                    spawnRotation = Quaternion.Euler(new Vector3(0, 0, 0));
-                                }
+                            }
+                        }
 
+
+                        if (createHere)
+                        { //means modernroomcreator found a suitable place to put object.
+                            SpawnList spawnLocation = spawnedObjectLocations[i];
+                            GameObject newObject;
+                            Quaternion spawnRotation = Quaternion.identity;
+
+                            if (!makeIt3d)
+                            {
+                                newObject = GameObject.Instantiate(objectToSpawn.gameObject, new Vector3(spawnLocation.x * tileScaling, spawnLocation.y * tileScaling, 0), spawnRotation) as GameObject;
                             }
                             else
                             {
-                                if (objectToSpawn.spawnRotated)
+                                if (spawnLocation.byWall)
                                 {
-                                    spawnRotation = Quaternion.Euler(new Vector3(0, Random.Range(0, 360), 0));
+                                    if (spawnLocation.wallLocation == "s")
+                                    {
+                                        spawnRotation = Quaternion.Euler(new Vector3(0, 270, 0));
+                                    }
+                                    else if (spawnLocation.wallLocation == "n")
+                                    {
+                                        spawnRotation = Quaternion.Euler(new Vector3(0, 90, 0));
+                                    }
+                                    else if (spawnLocation.wallLocation == "e")
+                                    {
+                                        spawnRotation = Quaternion.Euler(new Vector3(0, 180, 0));
+                                    }
+                                    else if (spawnLocation.wallLocation == "w")
+                                    {
+                                        spawnRotation = Quaternion.Euler(new Vector3(0, 0, 0));
+                                    }
+                                    Debug.Log("wallLocation" + spawnLocation.wallLocation);
                                 }
                                 else
                                 {
-                                    spawnRotation = Quaternion.Euler(new Vector3(0, Random.Range(0, 2) * 90, 0));
+                                    if (objectToSpawn.spawnRotated)
+                                    {
+                                        spawnRotation = Quaternion.Euler(new Vector3(0, Random.Range(0, 360), 0));
+                                    }
+                                    else
+                                    {
+                                        spawnRotation = Quaternion.Euler(new Vector3(0, Random.Range(0, 2) * 90, 0));
+                                    }
                                 }
+                                float margin = 0f;
+
+                                newObject = GameObject.Instantiate(objectToSpawn.gameObject, new Vector3(spawnLocation.x * tileScaling + margin, 0 + objectToSpawn.heightFix, spawnLocation.y * tileScaling + margin), spawnRotation) as GameObject;
                             }
-
-                            newObject = GameObject.Instantiate(objectToSpawn.gameObject, new Vector3(spawnLocation.x * tileScaling, 0 + objectToSpawn.heightFix, spawnLocation.y * tileScaling), spawnRotation) as GameObject;
+                            newObject.transform.parent = transform;
+                            spawnedObjectLocations[i].spawnedObject = newObject;
+                            objectCountToSpawn--;
+                            created = true;
+                            break;
                         }
-
-                        newObject.transform.parent = transform;
-                        spawnedObjectLocations[i].spawnedObject = newObject;
-                        objectCountToSpawn--;
-                        created = true;
-                        break;
                     }
+                }
+                else
+                {
+                    Vector3 randomPosition = roomManager.GetRandomObjectPosition(objectToSpawn.spawnRoom);
+                    GameObject newObject = GameObject.Instantiate(objectToSpawn.gameObject, randomPosition, Quaternion.identity) as GameObject;
+                    newObject.transform.parent = transform;
+                    created = true;
+                    objectCountToSpawn--;
                 }
                 if (!created) //if cant find anywhere to put, dont put. (prevents endless loops)
                 {

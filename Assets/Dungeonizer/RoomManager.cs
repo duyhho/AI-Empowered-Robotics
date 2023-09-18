@@ -1,6 +1,5 @@
 using UnityEngine;
 using System.Collections.Generic;
-using System;
 
 public class RoomManager : MonoBehaviour
 {
@@ -178,6 +177,27 @@ public class RoomManager : MonoBehaviour
         }
         return endPoint;
     }
+    public Vector3 GetRandomObjectPosition(int targetRoom = -1)
+    {
+        // Debug.Log("AllRooms Length: " + allRooms.Count);
 
+        if (allRooms.Count >= 1)
+        {
+            Room goalRoom = allRooms[Random.Range(0, allRooms.Count)];
+            if (targetRoom != -1)
+            {
+                goalRoom = allRooms[targetRoom];
+            }
+
+            // Generate a random offset within the room's boundaries, ensuring it is away from the walls
+            float margin = tileScaling * 1.5f;  // Adjusting margin to be half the cell size
+            float xOffset = UnityEngine.Random.Range(margin, goalRoom.w * tileScaling - margin);
+            float zOffset = UnityEngine.Random.Range(margin, goalRoom.h * tileScaling - margin);
+
+            Vector3 endPointPosition = new Vector3((goalRoom.x * tileScaling) + xOffset, 0.1f + parentOffsetHeight, (goalRoom.y * tileScaling) + zOffset);
+            return endPointPosition;
+        }
+        return endPoint;
+    }
 
 }
