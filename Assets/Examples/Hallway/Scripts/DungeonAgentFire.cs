@@ -450,6 +450,7 @@ public class DungeonAgentFire : Agent
         {
             ResetEnvironment();
         }
+
         EndEpisode();
 
     }

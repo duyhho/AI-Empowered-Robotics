@@ -21,11 +21,11 @@ behaviors:
         strength: 1.0
       gail:
         gamma: 0.99
-        strength: 0.7
-        demo_path: Demos/DynamicFireAgent_2.demo
+        strength: 0.5
+        demo_path: Demos/SingleModel.demo
     behavioral_cloning:
-      demo_path: Demos/DynamicFireAgent_2.demo
-      strength: 0.7
+      demo_path: Demos/SingleModel.demo
+      strength: 0.5
       steps: 100000  # Steps to use BC before it is phased out
     keep_checkpoints: 5
     max_steps: 20000000
