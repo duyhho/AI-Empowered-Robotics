@@ -130,7 +130,28 @@ public class AgentWaterFire : DungeonAgentFire
     }
     protected override void UpdateModelStats()
     {
-        base.UpdateModelStats();
+        // base.UpdateModelStats();
+        if (modelIndex >= 0 && m_CarryWater == true)
+        {
+            ModelStats currentStats = modelStatsList[modelIndex];
+            float timeToReachFire = Time.time - episodeStartTime;
+            currentStats.cumulativeTimeToReachFire += timeToReachFire;
+
+            currentStats.successfulAttempts += 1; // Increment successful attempts
+            float averageTime = currentStats.cumulativeTimeToReachFire / currentStats.successfulAttempts;
+            currentStats.averageTime = averageTime;
+
+            // Include the model set in your log messages
+            // Debug.Log("Model Set: " + modelIndex);
+            Debug.Log("Time to reach the fire: " + timeToReachFire + " seconds");
+            Debug.Log("Average time to reach the fire successfully (Model Set " + modelIndex + "): " + averageTime + " seconds");
+            Debug.Log("Success rate (Model Set " + modelIndex + "): " + ((float)currentStats.successfulAttempts / currentStats.attemptCount) * 100 + "% (" + currentStats.successfulAttempts + "-" + currentStats.attemptCount + ")");
+        }
+        else
+        {
+            Debug.Log("Reached Fire without water! Failed!");
+        }
+
     }
     public override void Heuristic(float[] actionsOut)
     {
