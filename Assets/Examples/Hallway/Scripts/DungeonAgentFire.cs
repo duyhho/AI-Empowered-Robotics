@@ -63,8 +63,10 @@ public class DungeonAgentFire : Agent
     public NNModel fourRoomBrain;
     public NNModel fiveRoomBrain;
     public NNModel dynamicRoomBrain;
-
-
+    [Header("Curriculum Training")]
+    [SerializeField]
+    public bool curriculumTraining = false;
+    protected EnvironmentParameters m_ResetParams;
     [Header("Evaluation Metrics")]
     public int maxAttempts = 5;
     public bool isEvaluation = false;
@@ -449,6 +451,13 @@ public class DungeonAgentFire : Agent
         if (!isEvaluation)
         {
             ResetEnvironment();
+            if (curriculumTraining)
+            {
+                float newRoomCount = m_ResetParams.GetWithDefault("room_count", -1);
+                Debug.Log("newRoomCount: " + newRoomCount);
+                modernRoomGenerator.maximumRoomCount = (int)newRoomCount;
+            }
+
         }
 
         EndEpisode();
