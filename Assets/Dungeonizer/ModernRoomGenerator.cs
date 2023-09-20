@@ -1124,7 +1124,7 @@ public class ModernRoomGenerator : MonoBehaviour
                 }
                 else
                 {
-                    Vector3 randomPosition = roomManager.GetRandomObjectPosition(objectToSpawn.spawnRoom);
+                    Vector3 randomPosition = roomManager.GetRandomObjectPosition();
                     GameObject newObject = GameObject.Instantiate(objectToSpawn.gameObject, randomPosition, Quaternion.identity) as GameObject;
                     newObject.transform.parent = transform;
                     created = true;

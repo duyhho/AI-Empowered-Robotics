@@ -183,14 +183,17 @@ public class RoomManager : MonoBehaviour
 
         if (allRooms.Count >= 1)
         {
-            Room goalRoom = allRooms[Random.Range(0, allRooms.Count)];
+            int roomIndex = Random.Range(0, allRooms.Count - 1);
             if (targetRoom != -1)
             {
-                goalRoom = allRooms[targetRoom];
+                roomIndex = targetRoom;
             }
+            Debug.Log("Room Index: " + roomIndex);
+            Room goalRoom = allRooms[roomIndex];
 
             // Generate a random offset within the room's boundaries, ensuring it is away from the walls
             float margin = tileScaling * 1.5f;  // Adjusting margin to be half the cell size
+
             float xOffset = UnityEngine.Random.Range(margin, goalRoom.w * tileScaling - margin);
             float zOffset = UnityEngine.Random.Range(margin, goalRoom.h * tileScaling - margin);
 
