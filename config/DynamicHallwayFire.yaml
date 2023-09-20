@@ -22,7 +22,7 @@ behaviors:
     reward_signals:
       extrinsic:
         gamma: 0.99
-        strength: 1.0
+        strength: 0.9
       curiosity:
         strength: 0.2
         gamma: 0.99
@@ -37,7 +37,7 @@ behaviors:
       demo_path: Demos/SingleModel.demo
       strength: 0.05
     keep_checkpoints: 5
-    max_steps: 500000
+    max_steps: 5000000
     time_horizon: 128
     summary_freq: 10000
     threaded: true
