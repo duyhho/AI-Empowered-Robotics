@@ -12,26 +12,26 @@ behaviors:
       learning_rate: 0.0003
       num_epoch: 3
     network_settings:
-      num_layers: 2
+      num_layers: 3
       normalize: false
       hidden_units: 512
     reward_signals:
       extrinsic:
         strength: 1.0
         gamma: 0.99
-      curiosity:
-        strength: 0.02
-        gamma: 0.99
-        encoding_size: 256
+      # curiosity:
+      #   strength: 0.02
+      #   gamma: 0.99
+      #   encoding_size: 256
       gail:
-        strength: 0.01
+        strength: 0.9
         gamma: 0.99
         encoding_size: 128
         demo_path: Demos/SingleModelCollab.demo
         use_vail: false
     behavioral_cloning:
       demo_path: Demos/SingleModelCollab.demo
-      strength: 0.5
+      strength: 0.9
     keep_checkpoints: 5
     max_steps: 5000000
     time_horizon: 128
