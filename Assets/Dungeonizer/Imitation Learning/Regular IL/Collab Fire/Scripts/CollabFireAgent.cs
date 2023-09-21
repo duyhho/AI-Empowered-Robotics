@@ -154,6 +154,7 @@ public class CollabFireAgent : DungeonAgentFire
     public override void OnEpisodeBegin()
     {
         base.OnEpisodeBegin();
+        ResetEnvironment();
         parentOffsetHeight = modernRoomGenerator.parentOffsetHeight;
         if (parentOffsetHeight <= -10000f)
         {
