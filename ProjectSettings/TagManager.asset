@@ -23,6 +23,7 @@ TagManager:
   - stone
   - corridor
   - water
+  - collab_agent
   layers:
   - Default
   - TransparentFX
