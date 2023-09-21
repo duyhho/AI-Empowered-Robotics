@@ -188,7 +188,7 @@ public class RoomManager : MonoBehaviour
             {
                 roomIndex = targetRoom;
             }
-            Debug.Log("Room Index: " + roomIndex);
+            // Debug.Log("Room Index: " + roomIndex);
             Room goalRoom = allRooms[roomIndex];
 
             // Generate a random offset within the room's boundaries, ensuring it is away from the walls
