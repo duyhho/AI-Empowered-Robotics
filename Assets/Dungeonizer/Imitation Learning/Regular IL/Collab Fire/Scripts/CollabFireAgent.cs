@@ -9,6 +9,7 @@ using System.Collections.Generic;
 public class CollabFireAgent : DungeonAgentFire
 {
     public FireLifeScript fireLifeScript;
+    float parentOffsetHeight;
     public override void Initialize()
     {
         base.Initialize();
@@ -153,8 +154,13 @@ public class CollabFireAgent : DungeonAgentFire
     public override void OnEpisodeBegin()
     {
         base.OnEpisodeBegin();
-        Vector3 newStartPosition = roomManager.startPoint;
-        Vector3 randomFirePosition = roomManager.GetRandomGoalPosition();
+        parentOffsetHeight = modernRoomGenerator.parentOffsetHeight;
+        if (parentOffsetHeight <= -10000f)
+        {
+            parentOffsetHeight = area.transform.position.y;
+        }
+        Vector3 newStartPosition = roomManager.startPoint + new Vector3(0f, parentOffsetHeight, 0f);
+        Vector3 randomFirePosition = roomManager.GetRandomGoalPosition() + new Vector3(0f, parentOffsetHeight, 0f); ;
         if (symbolOGoal)
         {
             fireLifeScript = symbolOGoal.GetComponent<FireLifeScript>();
@@ -184,7 +190,7 @@ public class CollabFireAgent : DungeonAgentFire
         CollaborativeAgentScript[] allCollabAgents = area.GetComponentsInChildren<CollaborativeAgentScript>();
         foreach (CollaborativeAgentScript cAgent in allCollabAgents)
         {
-            Vector3 randomPosition = roomManager.GetRandomObjectPosition();
+            Vector3 randomPosition = roomManager.GetRandomObjectPosition() + new Vector3(0f, parentOffsetHeight, 0f); ;
             // Debug.Log("randomPosition: " + randomPosition);
             cAgent.gameObject.transform.position = randomPosition;
             cAgent.Reset();
