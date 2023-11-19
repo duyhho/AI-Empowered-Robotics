@@ -1,4 +1,9 @@
 # AI-Empowered-Robotics (Active Research and Ongoing Projects)
+This repo consists of multiple ongoing projects related to Reinforcement Learning, Imitation Learning, Digital Twins, and Robotics. 
+
+Simulation: Unity
+Tool: ML-Agents
+
 
 # Dynamic Environment Generation & Navigation Agent (Unity)
 ![Dynamic Room Generator](https://github.com/duyhho/AI-Empowered-Robotics/blob/main/Media/dynamic_room_generator.gif?raw=true)
