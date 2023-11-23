@@ -1,5 +1,5 @@
 # AI-Empowered-Robotics (Active Research and Ongoing Projects)
-This repo consists of multiple ongoing projects related to Reinforcement Learning, Imitation Learning, Digital Twins, and Robotics. 
+Keywords: Reinforcement Learning, Imitation Learning, Digital Twins, and Robotics. 
 
 Simulation: Unity
 
