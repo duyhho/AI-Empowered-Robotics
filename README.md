@@ -1,6 +1,8 @@
 # AI-Empowered-Robotics (Active Research and Ongoing Projects)
 Keywords: Reinforcement Learning, Imitation Learning, Digital Twins, and Robotics. 
 
+Video: [Training Curriculum and Demo Navigation with ISDC](Media/ISDCDemo.mp4)
+
 Simulation: Unity
 
 Tool: ML-Agents
@@ -58,6 +60,6 @@ The comparative analysis of curriculum designs demonstrates that the incentive-b
 
 #### Demo Video
 
-<video src = "https://github.com/duyhho/AI-Empowered-Robotics/blob/main/Media/Fire%20Navigation%20-%20Copy.mp4"></video>
+[Training Curriculum and Demo Navigation with ISDC](Media/ISDCDemo.mp4)
 
 
