@@ -1,5 +1,5 @@
 # AI-Empowered-Robotics (Active Research and Ongoing Projects)
-Keywords: Reinforcement Learning, Imitation Learning, Digital Twins, and Robotics. 
+Keywords: Reinforcement Learning, Curriculum Learning, Curiosity-driven RL, Digital Twins, LLM, and Robotics. 
 
 Video (Unity Only) [Training Curriculum and Simulated Navigation with ISDC](Media/ISDCDemo.mp4)
 
