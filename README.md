@@ -1,9 +1,10 @@
 # AI-Empowered-Robotics (Active Research and Ongoing Projects)
 Keywords: Reinforcement Learning, Imitation Learning, Digital Twins, and Robotics. 
 
-Video: [Training Curriculum and Demo Navigation with ISDC](Media/ISDCDemo.mp4)
+Video (Unity Only) [Training Curriculum and Simulated Navigation with ISDC](Media/ISDCDemo.mp4)
 
-Simulation: Unity
+Video (Unity + ROS) : [Real world Navigation with NVIDIA Professional JetBot](Media/Real-worldNavISDC1.mp4)
+
 
 Tool: ML-Agents
 
@@ -55,11 +56,5 @@ Out-of-Distribution settings test the agents in 6- to 10-room configurations, wh
 
 ### Conclusion:
 The comparative analysis of curriculum designs demonstrates that the incentive-based curriculum design excels not only in training but also in both in-distribution and out-of-distribution evaluations. Whether the environment is static or dynamic, the curriculum that transitions from static rooms to dynamic rooms yields superior performance compared to those utilizing only static or dynamic settings. This pattern holds true even when the agent is subjected to OOD settings, which are inherently more complex and unpredictable. The incentive-based approach, which adapts to the agent's progress by introducing more complex tasks when certain performance thresholds are met, proves to be more effective than a timeline-driven curriculum across all tested environments. This adaptability is crucial for preparing autonomous systems to handle real-world variables, especially in high-stakes applications like collaborative firefighting, where efficiency and rapid adaptability can be lifesaving.
-
-### Supplementary Materials 
-
-#### Demo Video
-
-[Training Curriculum and Demo Navigation with ISDC](Media/ISDCDemo.mp4)
 
 
